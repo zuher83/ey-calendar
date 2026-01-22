@@ -6,7 +6,9 @@ import { format } from "date-fns";
 import { EyCalendar } from "@emoory/ey-calendar";
 import type { EyCalendarEvent, EyCalendarOptions } from "@emoory/ey-calendar";
 import { generateProfessionalEventsWithUsers, type User } from "@/utils/eventGenerator";
-import "@emoory/ey-calendar/styles.css";
+// import "@emoory/ey-calendar/styles.css";
+import '@emoory/ey-calendar/styles/structure.css';
+import { tailwindTheme } from "@/styles/tailwind";
 
 type Theme = "light" | "dark" | "system";
 
@@ -20,10 +22,25 @@ export default function PlaygroundPage() {
   useEffect(() => {
     const root = document.documentElement;
 
+    const applySystemTheme = () => {
+      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      root.classList.remove("light", "dark");
+      if (isDark) {
+        root.classList.add("dark");
+      }
+    };
+
     if (theme === "system") {
       // Remove manual override, let prefers-color-scheme work
       root.removeAttribute("data-theme");
-      root.classList.remove("light", "dark");
+      applySystemTheme();
+
+      // Listen for system theme changes
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = () => applySystemTheme();
+      mediaQuery.addEventListener("change", handleChange);
+
+      return () => mediaQuery.removeEventListener("change", handleChange);
     } else {
       root.setAttribute("data-theme", theme);
       root.classList.remove("light", "dark");
@@ -58,6 +75,7 @@ export default function PlaygroundPage() {
     enableCreate: true,
     enableDelete: true,
     autoHeight: true,
+    theme: tailwindTheme,
   };
 
   const handleEventCreate = (
