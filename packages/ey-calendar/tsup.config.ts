@@ -1,9 +1,9 @@
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
-import { defineConfig } from "tsup";
-import postcss from "postcss";
 import cssnano from "cssnano";
+import postcss from "postcss";
+import { defineConfig } from "tsup";
 
 // ESM compatibility for __dirname
 const __filename = fileURLToPath(import.meta.url);

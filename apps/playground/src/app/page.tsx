@@ -7,7 +7,7 @@ import { EyCalendar } from "@emoory/ey-calendar";
 import type { EyCalendarEvent, EyCalendarOptions } from "@emoory/ey-calendar";
 import { generateProfessionalEventsWithUsers, type User } from "@/utils/eventGenerator";
 // import "@emoory/ey-calendar/styles.css";
-import '@emoory/ey-calendar/styles/structure.css';
+import "@emoory/ey-calendar/styles/structure.css";
 import { tailwindTheme } from "@/styles/tailwind";
 
 type Theme = "light" | "dark" | "system";
