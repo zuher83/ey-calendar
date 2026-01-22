@@ -1,0 +1,22 @@
+{
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": false,
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false,
+    "arrowParens": "always",
+    "endOfLine": "lf",
+    "plugins": [
+        "@ianvs/prettier-plugin-sort-imports"
+    ],
+    "importOrder": [
+        "^react$",
+        "^react-dom$",
+        "^next",
+        "<THIRD_PARTY_MODULES>",
+        "^@emoory/(.*)$",
+        "^@/(.*)$",
+        "^[./]"
+    ]
+}

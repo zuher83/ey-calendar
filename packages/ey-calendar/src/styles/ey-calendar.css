@@ -1,0 +1,19 @@
+/**
+ * EyCalendar - Complete CSS Bundle
+ *
+ * This file combines structure and theme CSS for easy import.
+ * Import this single file for the complete out-of-the-box experience.
+ *
+ * Usage:
+ *   import '@emoory/ey-calendar/dist/ey-calendar.css'
+ *
+ * For more control, import separately:
+ *   import '@emoory/ey-calendar/dist/ey-calendar.structure.css'
+ *   import '@emoory/ey-calendar/dist/ey-calendar.theme.css'
+ *
+ * @package @emoory/ey-calendar
+ * @author Zuher ELMAS - Emoory Team
+ */
+
+@import './ey-calendar.structure.css';
+@import './ey-calendar.theme.css';

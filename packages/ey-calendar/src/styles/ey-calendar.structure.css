@@ -1,0 +1,907 @@
+/**
+ * EyCalendar - Structure CSS (Layout only)
+ *
+ * This file contains ONLY structural/layout styles.
+ * NO colors, borders, shadows, or visual styling here.
+ * Visual styles are in ey-calendar.theme.css
+ *
+ * @package @emoory/ey-calendar
+ * @author Zuher ELMAS - Emoory Team
+ */
+
+/* =============================================================================
+   ROOT CONTAINER
+   ============================================================================= */
+
+.ey-cal-root {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* =============================================================================
+   TOOLBAR
+   ============================================================================= */
+
+.ey-cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ey-cal-toolbar-navigation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ey-cal-toolbar-title {
+  flex: 1;
+  text-align: center;
+}
+
+.ey-cal-toolbar-view-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* =============================================================================
+   BUTTONS
+   ============================================================================= */
+
+.ey-cal-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ey-cal-button-sm {
+  padding: 0.125rem 0.5rem;
+  font-size: var(--ey-cal-font-size-sm);
+}
+
+.ey-cal-button-lg {
+  padding: 0.5rem 1rem;
+}
+
+.ey-cal-button-icon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}
+
+.ey-cal-button-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ey-cal-button-today {
+  /* Layout handled by button base */
+}
+
+.ey-cal-button-view {
+  /* Layout handled by button base */
+}
+
+.ey-cal-button-view-active {
+  /* Visual only - see theme.css */
+}
+
+/* =============================================================================
+   BADGE
+   ============================================================================= */
+
+.ey-cal-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  font-size: var(--ey-cal-font-size-xs, 0.75rem);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ey-cal-badge-sm {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
+}
+
+.ey-cal-badge-lg {
+  padding: 0.375rem 0.75rem;
+  font-size: var(--ey-cal-font-size-sm, 0.875rem);
+}
+
+/* =============================================================================
+   VIEW CONTAINER
+   ============================================================================= */
+
+.ey-cal-view-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* =============================================================================
+   WEEK VIEW
+   ============================================================================= */
+
+.ey-cal-week-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
+}
+
+.ey-cal-week-view-container {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.ey-cal-week-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.ey-cal-week-header-grid {
+  display: grid;
+}
+
+.ey-cal-week-header-day {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.ey-cal-week-header-day-name {
+  /* Text styling in theme */
+}
+
+.ey-cal-week-header-day-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+}
+
+.ey-cal-week-header-day-number[data-today="true"] {
+  /* Visual in theme */
+}
+
+.ey-cal-week-header-day-clickable {
+  cursor: pointer;
+}
+
+.ey-cal-week-grid {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.ey-cal-week-grid-inner {
+  display: grid;
+}
+
+.ey-cal-week-time-column {
+  width: 3rem; /* 48px */
+}
+
+.ey-cal-week-time-slot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.ey-cal-week-time-slot-text {
+  /* Text styling in theme */
+}
+
+.ey-cal-week-day-column {
+  position: relative;
+}
+
+.ey-cal-week-day-column[data-hidden="true"] {
+  display: none;
+}
+
+.ey-cal-week-hour-cell {
+  position: relative;
+}
+
+.ey-cal-week-events-container {
+  position: absolute;
+  inset: 0;
+}
+
+.ey-cal-week-event-wrapper {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.ey-cal-week-event-wrapper-conflict {
+  position: absolute;
+}
+
+.ey-cal-week-all-day-section {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.ey-cal-week-all-day-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ey-cal-week-all-day-column {
+  position: relative;
+}
+
+.ey-cal-week-all-day-column[data-hidden="true"] {
+  display: none;
+}
+
+.ey-cal-week-all-day-event-bar {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.ey-cal-week-all-day-event-bar-full {
+  border-radius: 0.25rem;
+}
+
+.ey-cal-week-all-day-event-bar-start {
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+}
+
+.ey-cal-week-all-day-event-bar-end {
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.ey-cal-week-all-day-event-bar-middle {
+  border-radius: 0;
+}
+
+.ey-cal-week-all-day-event-bar-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ey-cal-week-day-column-inner {
+  position: relative;
+}
+
+/* =============================================================================
+   DAY VIEW
+   ============================================================================= */
+
+.ey-cal-day-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ey-cal-day-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.ey-cal-day-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.ey-cal-day-grid {
+  display: flex;
+}
+
+.ey-cal-day-time-column {
+  width: 3rem; /* 48px */
+}
+
+.ey-cal-day-time-slot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.ey-cal-day-time-slot-text {
+  /* Text styling in theme */
+}
+
+.ey-cal-day-main-column {
+  position: relative;
+  flex: 1;
+}
+
+.ey-cal-day-slot-cell {
+  /* Base cell */
+}
+
+.ey-cal-day-slot-cell-hour {
+  /* Full hour cell */
+}
+
+.ey-cal-day-events-container {
+  position: absolute;
+  inset: 0;
+}
+
+.ey-cal-day-event-wrapper {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.ey-cal-day-all-day-section {
+  /* Layout handled by parent */
+}
+
+.ey-cal-day-all-day-event-bar {
+  /* Event bar styling */
+}
+
+.ey-cal-day-current-time-line {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.ey-cal-day-current-time-line-inner {
+  display: flex;
+  align-items: center;
+}
+
+.ey-cal-day-current-time-line-dot {
+  /* Visual in theme */
+}
+
+.ey-cal-day-current-time-line-bar {
+  flex: 1;
+}
+
+/* =============================================================================
+   MONTH VIEW
+   ============================================================================= */
+
+.ey-cal-month-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
+}
+
+.ey-cal-month-header {
+  flex-shrink: 0;
+}
+
+.ey-cal-month-header-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.ey-cal-month-header-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ey-cal-month-header-day-text {
+  /* Text styling in theme */
+}
+
+.ey-cal-month-header-day-border {
+  /* Border in theme */
+}
+
+.ey-cal-month-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  flex: 1;
+  min-height: 0;
+}
+
+.ey-cal-month-day-cell {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ey-cal-month-day-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ey-cal-month-day-number-clickable {
+  cursor: pointer;
+}
+
+.ey-cal-month-events-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.ey-cal-month-events-desktop {
+  flex: 1;
+}
+
+.ey-cal-month-events-list {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.ey-cal-month-events-list-inner {
+  flex: 1;
+  overflow: hidden;
+}
+
+.ey-cal-month-event-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  overflow: hidden;
+}
+
+.ey-cal-month-event-dot {
+  flex-shrink: 0;
+}
+
+.ey-cal-month-event-dot-mobile {
+  /* Responsive visibility in theme */
+}
+
+.ey-cal-month-event-content {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.ey-cal-month-event-time {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ey-cal-month-event-time-text {
+  flex-shrink: 0;
+}
+
+.ey-cal-month-event-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ey-cal-month-more-events {
+  flex-shrink: 0;
+  position: absolute;
+  left: 0.25rem;
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+}
+
+.ey-cal-month-week-row {
+  position: relative;
+  display: grid;
+  height: 100%;
+}
+
+.ey-cal-month-week-number-cell {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.ey-cal-month-week-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ey-cal-month-header-week-number-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ey-cal-month-event-bar {
+  pointer-events: auto;
+  position: absolute;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ey-cal-month-event-bar-time {
+  flex-shrink: 0;
+}
+
+.ey-cal-month-event-bar-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ey-cal-month-events-layer {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.ey-cal-month-single-day-events-container {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+
+.ey-cal-month-event-item-wrapper {
+  pointer-events: auto;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ey-cal-month-event-item-time {
+  flex-shrink: 0;
+}
+
+.ey-cal-month-event-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ey-cal-month-event-item-dot {
+  flex-shrink: 0;
+  border-radius: 9999px;
+}
+
+/* =============================================================================
+   PLANNING VIEW
+   ============================================================================= */
+
+.ey-cal-planning-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ey-cal-planning-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.ey-cal-planning-content {
+  /* Content container */
+}
+
+.ey-cal-planning-date-group {
+  /* Date group container */
+}
+
+.ey-cal-planning-date-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.ey-cal-planning-date-header-title {
+  /* Text styling in theme */
+}
+
+.ey-cal-planning-date-header-subtitle {
+  /* Text styling in theme */
+}
+
+.ey-cal-planning-events-list {
+  /* Events list container */
+}
+
+.ey-cal-planning-no-events {
+  /* No events message */
+}
+
+.ey-cal-planning-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ey-cal-planning-empty-container {
+  /* Empty container */
+}
+
+.ey-cal-planning-empty-icon {
+  /* Icon styling in theme */
+}
+
+.ey-cal-planning-empty-title {
+  /* Text styling in theme */
+}
+
+.ey-cal-planning-empty-text {
+  /* Text styling in theme */
+}
+
+/* =============================================================================
+   EVENT BAR
+   ============================================================================= */
+
+.ey-cal-event-bar {
+  position: absolute;
+  overflow: hidden;
+}
+
+.ey-cal-event-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ey-cal-event-content-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ey-cal-event-content-minimal {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ey-cal-event-content-full {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ey-cal-event-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.ey-cal-event-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ey-cal-event-time {
+  /* Text styling in theme */
+}
+
+.ey-cal-event-time-resizing {
+  /* Resizing state in theme */
+}
+
+.ey-cal-event-description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ey-cal-event-location {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ey-cal-event-location-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ey-cal-event-resize-handle {
+  position: absolute;
+  right: 0;
+  left: 0;
+}
+
+.ey-cal-event-resize-handle-top {
+  top: 0;
+}
+
+.ey-cal-event-resize-handle-bottom {
+  bottom: 0;
+}
+
+.ey-cal-event-recurring-indicator {
+  position: absolute;
+}
+
+.ey-cal-event-recurring-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+}
+
+.ey-cal-event-recurring-icon-text {
+  /* Text styling in theme */
+}
+
+.ey-cal-event-conflict-indicator {
+  flex-shrink: 0;
+}
+
+.ey-cal-event-conflict-indicator-compact {
+  border-radius: 9999px;
+}
+
+.ey-cal-event-conflict-dot {
+  border-radius: 9999px;
+}
+
+/* =============================================================================
+   EVENT CARD (Planning view)
+   ============================================================================= */
+
+.ey-cal-event-card {
+  /* Card styling in theme */
+}
+
+.ey-cal-event-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ey-cal-event-card-content {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+}
+
+.ey-cal-event-card-time {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.ey-cal-event-card-time-text {
+  /* Text styling in theme */
+}
+
+.ey-cal-event-card-time-past {
+  /* Past state in theme */
+}
+
+.ey-cal-event-card-duration {
+  /* Text styling in theme */
+}
+
+.ey-cal-event-card-duration-past {
+  /* Past state in theme */
+}
+
+.ey-cal-event-card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ey-cal-event-card-title-past {
+  /* Past state in theme */
+}
+
+.ey-cal-event-card-indicators {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.ey-cal-event-card-all-day {
+  /* Badge styling in theme */
+}
+
+.ey-cal-event-card-recurring {
+  /* Icon styling in theme */
+}
+
+.ey-cal-event-card-description {
+  /* Text styling in theme */
+}
+
+.ey-cal-event-card-description-past {
+  /* Past state in theme */
+}
+
+.ey-cal-event-card-location {
+  display: flex;
+  align-items: center;
+}
+
+.ey-cal-event-card-location-past {
+  display: flex;
+  align-items: center;
+}
+
+.ey-cal-event-card-location-icon {
+  /* Icon styling in theme */
+}
+
+.ey-cal-event-card-location-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =============================================================================
+   ICONS
+   ============================================================================= */
+
+.ey-cal-icon {
+  /* Icon base */
+}
+
+.ey-cal-icon-chevron {
+  /* Chevron icon */
+}
+
+/* =============================================================================
+   RESPONSIVE - Mobile adjustments
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  .ey-cal-week-time-column,
+  .ey-cal-day-time-column {
+    width: 2.5rem; /* 40px on mobile */
+  }
+
+  .ey-cal-month-events-desktop {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ey-cal-month-events-desktop {
+    display: block;
+  }
+
+  .ey-cal-month-event-dot-mobile {
+    display: none;
+  }
+}

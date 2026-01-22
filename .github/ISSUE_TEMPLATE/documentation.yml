@@ -1,0 +1,56 @@
+---
+name: "📋 Documentation Update"
+description: Report an issue or suggest improvements to the documentation
+title: '[docs]: '
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Thanks for helping us improve our documentation!
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation type
+      description: What type of documentation needs attention?
+      options:
+        - API Reference
+        - Getting Started Guide
+        - Examples
+        - Migration Guide
+        - README
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: What's wrong or missing?
+      description: Describe what needs to be fixed or added to the documentation
+      placeholder: The documentation about... is unclear/missing/incorrect because...
+    validations:
+      required: true
+
+  - type: input
+    id: doc-location
+    attributes:
+      label: Documentation location
+      description: Link or path to the documentation that needs updating
+      placeholder: https://github.com/zuher83/ey-calendar or packages/ey-calendar/README.md
+
+  - type: textarea
+    id: suggested-improvement
+    attributes:
+      label: Suggested improvement
+      description: How would you improve this documentation?
+      placeholder: I think it would be clearer if...
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Before submitting
+      options:
+        - label: I've searched for existing documentation issues
+          required: true

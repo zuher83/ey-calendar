@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "💬 Discussions"
+    url: https://github.com/zuher83/ey-calendar/discussions
+    about: Ask questions and discuss features
+  - name: "📚 Documentation"
+    url: https://github.com/zuher83/ey-calendar/
+    about: Read the official documentation
+  - name: "🎮 Playground"
+    url: https://stackblitz.com/github/zuher83/ey-calendar/tree/main/apps/playground
+    about: Try EyCalendar in an interactive environment

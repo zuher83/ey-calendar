@@ -1,0 +1,102 @@
+{
+  "name": "@emoory/ey-calendar",
+  "version": "0.1.0",
+  "description": "EyCalendar - A headless, themeable React calendar component for modern applications",
+  "author": "Zuher ELMAS - Emoory Team",
+  "license": "MIT",
+  "homepage": "https://github.com/zuher83/ey-calendar#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zuher83/ey-calendar.git",
+    "directory": "packages/ey-calendar"
+  },
+  "bugs": {
+    "url": "https://github.com/zuher83/ey-calendar/issues"
+  },
+  "keywords": [
+    "react",
+    "calendar",
+    "headless",
+    "scheduler",
+    "datepicker",
+    "events",
+    "drag-and-drop",
+    "i18n",
+    "typescript",
+    "planning",
+    "attendance"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./styles.css": {
+      "import": "./dist/ey-calendar.css",
+      "require": "./dist/ey-calendar.css",
+      "default": "./dist/ey-calendar.css"
+    },
+    "./styles/structure.css": {
+      "import": "./dist/ey-calendar.structure.css",
+      "require": "./dist/ey-calendar.structure.css",
+      "default": "./dist/ey-calendar.structure.css"
+    },
+    "./styles/theme.css": {
+      "import": "./dist/ey-calendar.theme.css",
+      "require": "./dist/ey-calendar.theme.css",
+      "default": "./dist/ey-calendar.theme.css"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": [
+    "*.css"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "lint": "eslint src/ --max-warnings 7",
+    "lint:fix": "eslint src/ --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "prepublishOnly": "pnpm build && pnpm typecheck && pnpm test"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.9",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.2",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "tsup": "^8.4.2",
+    "typescript": "^5.7.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

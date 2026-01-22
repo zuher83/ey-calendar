@@ -1,0 +1,1100 @@
+/**
+ * EyCalendar - Theme CSS (Visual styles)
+ *
+ * This file contains CSS Variables and visual styles.
+ * Colors, borders, shadows, typography, spacing, etc.
+ * Structural/layout styles are in ey-calendar.structure.css
+ *
+ * @package @emoory/ey-calendar
+ * @author Zuher ELMAS - Emoory Team
+ */
+
+/* =============================================================================
+   CSS VARIABLES - Light Mode (Default)
+   ============================================================================= */
+
+.ey-cal-root {
+  /* Colors - Primary */
+  --ey-cal-primary: #4f46e5;
+  --ey-cal-primary-hover: #4338ca;
+  --ey-cal-primary-light: #e0e7ff;
+
+  /* Colors - Background */
+  --ey-cal-background: #ffffff;
+  --ey-cal-background-muted: #f9fafb;
+  --ey-cal-background-hover: #f3f4f6;
+  --ey-cal-background-active: #e5e7eb;
+
+  /* Colors - Foreground (Text) */
+  --ey-cal-foreground: #111827;
+  --ey-cal-foreground-muted: #6b7280;
+  --ey-cal-foreground-subtle: #9ca3af;
+
+  /* Colors - Border */
+  --ey-cal-border: #e5e7eb;
+  --ey-cal-border-strong: #d1d5db;
+
+  /* Colors - States */
+  --ey-cal-today-bg: #4f46e5;
+  --ey-cal-today-text: #ffffff;
+  --ey-cal-selected-ring: #3b82f6;
+  --ey-cal-conflict: #fbbf24;
+  --ey-cal-error: #ef4444;
+  --ey-cal-success: #22c55e;
+
+  /* Colors - Event defaults */
+  --ey-cal-event-bg: #dbeafe;
+  --ey-cal-event-text: #1e40af;
+  --ey-cal-event-border: rgba(0, 0, 0, 0.1);
+
+  /* Dimensions */
+  --ey-cal-radius-sm: 0.25rem;
+  --ey-cal-radius: 0.375rem;
+  --ey-cal-radius-lg: 0.5rem;
+  --ey-cal-radius-full: 9999px;
+
+  /* Spacing */
+  --ey-cal-spacing-xs: 0.25rem;
+  --ey-cal-spacing-sm: 0.5rem;
+  --ey-cal-spacing-md: 1rem;
+  --ey-cal-spacing-lg: 1.5rem;
+
+  /* Typography */
+  --ey-cal-font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ey-cal-font-size-2xs: 0.65rem;
+  --ey-cal-font-size-xs: 0.75rem;
+  --ey-cal-font-size-sm: 0.875rem;
+  --ey-cal-font-size-base: 1rem;
+  --ey-cal-font-size-lg: 1.125rem;
+
+  /* Shadows */
+  --ey-cal-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --ey-cal-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --ey-cal-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --ey-cal-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+  /* Transitions */
+  --ey-cal-transition-fast: 150ms ease;
+  --ey-cal-transition: 200ms ease;
+  --ey-cal-transition-slow: 300ms ease;
+
+  /* Z-index layers */
+  --ey-cal-z-base: 0;
+  --ey-cal-z-header: 10;
+  --ey-cal-z-sticky: 20;
+  --ey-cal-z-dropdown: 30;
+  --ey-cal-z-modal: 40;
+  --ey-cal-z-dragging: 50;
+
+  /* Apply base styles */
+  font-family: var(--ey-cal-font-family);
+  font-size: var(--ey-cal-font-size-base);
+  color: var(--ey-cal-foreground);
+  background-color: var(--ey-cal-background);
+  border-radius: var(--ey-cal-radius-lg);
+  border: 1px solid var(--ey-cal-border);
+  box-shadow: var(--ey-cal-shadow-sm);
+}
+
+/* =============================================================================
+   CSS VARIABLES - Dark Mode (Auto-detection)
+   ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .ey-cal-root:not([data-theme="light"]) {
+    /* Colors - Primary */
+    --ey-cal-primary: #6366f1;
+    --ey-cal-primary-hover: #818cf8;
+    --ey-cal-primary-light: #312e81;
+
+    /* Colors - Background */
+    --ey-cal-background: #111827;
+    --ey-cal-background-muted: #1f2937;
+    --ey-cal-background-hover: #374151;
+    --ey-cal-background-active: #4b5563;
+
+    /* Colors - Foreground (Text) */
+    --ey-cal-foreground: #f9fafb;
+    --ey-cal-foreground-muted: #9ca3af;
+    --ey-cal-foreground-subtle: #6b7280;
+
+    /* Colors - Border */
+    --ey-cal-border: #374151;
+    --ey-cal-border-strong: #4b5563;
+
+    /* Colors - States */
+    --ey-cal-today-bg: #6366f1;
+    --ey-cal-today-text: #ffffff;
+
+    /* Colors - Event defaults */
+    --ey-cal-event-bg: #1e3a5f;
+    --ey-cal-event-text: #93c5fd;
+
+    /* Shadows - Darker for dark mode */
+    --ey-cal-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --ey-cal-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+    --ey-cal-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+    --ey-cal-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* =============================================================================
+   CSS VARIABLES - Dark Mode (Manual override)
+   ============================================================================= */
+
+.ey-cal-root[data-theme="dark"] {
+  /* Colors - Primary */
+  --ey-cal-primary: #6366f1;
+  --ey-cal-primary-hover: #818cf8;
+  --ey-cal-primary-light: #312e81;
+
+  /* Colors - Background */
+  --ey-cal-background: #111827;
+  --ey-cal-background-muted: #1f2937;
+  --ey-cal-background-hover: #374151;
+  --ey-cal-background-active: #4b5563;
+
+  /* Colors - Foreground (Text) */
+  --ey-cal-foreground: #f9fafb;
+  --ey-cal-foreground-muted: #9ca3af;
+  --ey-cal-foreground-subtle: #6b7280;
+
+  /* Colors - Border */
+  --ey-cal-border: #374151;
+  --ey-cal-border-strong: #4b5563;
+
+  /* Colors - States */
+  --ey-cal-today-bg: #6366f1;
+  --ey-cal-today-text: #ffffff;
+
+  /* Colors - Event defaults */
+  --ey-cal-event-bg: #1e3a5f;
+  --ey-cal-event-text: #93c5fd;
+
+  /* Shadows */
+  --ey-cal-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --ey-cal-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --ey-cal-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --ey-cal-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+}
+
+/* =============================================================================
+   TOOLBAR - Visual styles
+   ============================================================================= */
+
+.ey-cal-toolbar {
+  padding: var(--ey-cal-spacing-md);
+  border-bottom: 1px solid var(--ey-cal-border);
+  background-color: var(--ey-cal-background-muted);
+}
+
+.ey-cal-toolbar-title {
+  font-size: var(--ey-cal-font-size-lg);
+  font-weight: 600;
+  color: var(--ey-cal-foreground);
+}
+
+.ey-cal-toolbar-view-selector {
+  background-color: var(--ey-cal-background);
+  padding: 0.125rem;
+  border: 1px solid var(--ey-cal-border);
+  border-radius: var(--ey-cal-radius);
+}
+
+/* =============================================================================
+   BUTTONS - Visual styles
+   ============================================================================= */
+
+.ey-cal-button {
+  border-radius: var(--ey-cal-radius);
+  border: 1px solid var(--ey-cal-border);
+  background-color: var(--ey-cal-background);
+  color: var(--ey-cal-foreground);
+  cursor: pointer;
+  transition: background-color var(--ey-cal-transition-fast),
+              color var(--ey-cal-transition-fast),
+              border-color var(--ey-cal-transition-fast);
+}
+
+.ey-cal-button:hover {
+  background-color: var(--ey-cal-background-hover);
+}
+
+.ey-cal-button:active {
+  background-color: var(--ey-cal-background-active);
+}
+
+.ey-cal-button:disabled {
+  background-color: var(--ey-cal-background-muted);
+  color: var(--ey-cal-foreground-subtle);
+  cursor: not-allowed;
+}
+
+.ey-cal-button-nav {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--ey-cal-radius);
+  border: 1px solid var(--ey-cal-border);
+  background-color: var(--ey-cal-background);
+  color: var(--ey-cal-foreground);
+  cursor: pointer;
+  transition: background-color var(--ey-cal-transition-fast);
+}
+
+.ey-cal-button-nav:hover {
+  background-color: var(--ey-cal-background-hover);
+}
+
+.ey-cal-button-nav:disabled {
+  background-color: var(--ey-cal-background-muted);
+  color: var(--ey-cal-foreground-subtle);
+  cursor: not-allowed;
+}
+
+.ey-cal-button-today {
+  padding: 0.25rem 0.75rem;
+  font-size: var(--ey-cal-font-size-sm);
+  cursor: pointer;
+}
+
+.ey-cal-button-view {
+  padding: 0.25rem 0.75rem;
+  font-size: var(--ey-cal-font-size-sm);
+  color: var(--ey-cal-foreground);
+  cursor: pointer;
+  transition: background-color var(--ey-cal-transition-fast),
+              color var(--ey-cal-transition-fast);
+  border: none;
+  background: transparent;
+}
+
+.ey-cal-button-view:first-child {
+  border-top-left-radius: var(--ey-cal-radius-sm);
+  border-bottom-left-radius: var(--ey-cal-radius-sm);
+}
+
+.ey-cal-button-view:last-child {
+  border-top-right-radius: var(--ey-cal-radius-sm);
+  border-bottom-right-radius: var(--ey-cal-radius-sm);
+}
+
+.ey-cal-button-view:hover {
+  background-color: var(--ey-cal-background-hover);
+}
+
+.ey-cal-button-view-active,
+.ey-cal-button-view[data-active="true"] {
+  background-color: var(--ey-cal-primary);
+  color: var(--ey-cal-today-text);
+}
+
+.ey-cal-button-view-active:hover,
+.ey-cal-button-view[data-active="true"]:hover {
+  background-color: var(--ey-cal-primary-hover);
+}
+
+.ey-cal-button-ghost {
+  border: none;
+  background: transparent;
+}
+
+.ey-cal-button-ghost:hover {
+  background-color: var(--ey-cal-background-hover);
+}
+
+/* =============================================================================
+   BADGE - Visual styles
+   ============================================================================= */
+
+.ey-cal-badge {
+  border-radius: var(--ey-cal-radius-sm);
+}
+
+.ey-cal-badge-default {
+  background-color: var(--ey-cal-background-muted);
+  color: var(--ey-cal-foreground-subtle);
+}
+
+.ey-cal-badge-info {
+  background-color: var(--ey-cal-badge-info-bg, #dbeafe);
+  color: var(--ey-cal-badge-info-text, #1e40af);
+}
+
+.ey-cal-badge-success {
+  background-color: var(--ey-cal-badge-success-bg, #dcfce7);
+  color: var(--ey-cal-badge-success-text, #166534);
+}
+
+.ey-cal-badge-warning {
+  background-color: var(--ey-cal-badge-warning-bg, #fef3c7);
+  color: var(--ey-cal-badge-warning-text, #92400e);
+}
+
+.ey-cal-badge-error {
+  background-color: var(--ey-cal-badge-error-bg, #fee2e2);
+  color: var(--ey-cal-badge-error-text, #991b1b);
+}
+
+/* =============================================================================
+   WEEK VIEW - Visual styles
+   ============================================================================= */
+
+.ey-cal-week-header {
+  border-bottom: 1px solid var(--ey-cal-border);
+  background-color: var(--ey-cal-background);
+}
+
+.ey-cal-week-header-grid {
+  margin-inline-end: 15px; /* Scrollbar compensation */
+}
+
+.ey-cal-week-header-day {
+  gap: 0.375rem;
+  padding: 0.375rem;
+  border-right: 1px solid var(--ey-cal-border);
+  text-transform: capitalize;
+}
+
+.ey-cal-week-header-day:last-child {
+  border-right: none;
+}
+
+.ey-cal-week-header-day-name {
+  font-size: var(--ey-cal-font-size-xs);
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-week-header-day-number {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: var(--ey-cal-font-size-xs);
+  color: var(--ey-cal-foreground);
+}
+
+.ey-cal-week-header-day-number[data-today="true"] {
+  background-color: var(--ey-cal-today-bg);
+  color: var(--ey-cal-today-text);
+  font-weight: 600;
+}
+
+.ey-cal-week-header-day-clickable {
+  transition: color var(--ey-cal-transition-fast);
+}
+
+.ey-cal-week-header-day-clickable:hover {
+  color: var(--ey-cal-primary);
+}
+
+.ey-cal-week-time-column {
+  border-right: 1px solid var(--ey-cal-border);
+}
+
+.ey-cal-week-time-slot {
+  border-bottom: 1px solid var(--ey-cal-border);
+  padding-top: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.ey-cal-week-time-slot-text {
+  font-size: var(--ey-cal-font-size-xs);
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-week-day-column {
+  border-right: 1px solid var(--ey-cal-border);
+}
+
+.ey-cal-week-day-column:last-child {
+  border-right: none;
+}
+
+.ey-cal-week-hour-cell {
+  border-bottom: 1px solid var(--ey-cal-border);
+  transition: background-color var(--ey-cal-transition-fast);
+}
+
+.ey-cal-week-hour-cell:hover {
+  background-color: var(--ey-cal-background-hover);
+}
+
+.ey-cal-week-events-container {
+  border-right: 1px solid var(--ey-cal-border);
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.ey-cal-week-events-container:last-child {
+  border-right: none;
+}
+
+.ey-cal-week-event-wrapper {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.ey-cal-week-event-wrapper-conflict {
+  padding-left: 0.125rem;
+  padding-right: 0.125rem;
+}
+
+.ey-cal-week-all-day-section {
+  border-bottom: 1px solid var(--ey-cal-border);
+  background-color: var(--ey-cal-background);
+}
+
+.ey-cal-week-all-day-label {
+  font-size: var(--ey-cal-font-size-xs);
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-week-all-day-event-bar {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  font-size: var(--ey-cal-font-size-xs);
+  font-weight: 500;
+  transition: opacity var(--ey-cal-transition-fast);
+}
+
+.ey-cal-week-all-day-event-bar:hover {
+  opacity: 0.9;
+}
+
+/* =============================================================================
+   DAY VIEW - Visual styles
+   ============================================================================= */
+
+.ey-cal-day-header {
+  padding: var(--ey-cal-spacing-md);
+  border-bottom: 1px solid var(--ey-cal-border);
+  background-color: var(--ey-cal-background);
+}
+
+.ey-cal-day-time-column {
+  border-right: 1px solid var(--ey-cal-border);
+}
+
+.ey-cal-day-time-slot {
+  border-bottom: 1px solid var(--ey-cal-border);
+  padding-top: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+.ey-cal-day-time-slot-text {
+  font-size: var(--ey-cal-font-size-xs);
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-day-slot-cell-hour {
+  border-top: 1px solid var(--ey-cal-border-strong);
+  transition: background-color var(--ey-cal-transition-fast);
+}
+
+.ey-cal-day-slot-cell-hour:hover {
+  background-color: var(--ey-cal-background-hover);
+}
+
+.ey-cal-day-events-container {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.ey-cal-day-all-day-section {
+  border-bottom: 1px solid var(--ey-cal-border);
+}
+
+.ey-cal-day-all-day-event-bar {
+  box-shadow: var(--ey-cal-shadow-sm);
+}
+
+.ey-cal-day-current-time-line-inner {
+  background-color: var(--ey-cal-primary);
+}
+
+.ey-cal-day-current-time-line-dot {
+  height: 2px;
+  width: 0.75rem;
+  border-radius: var(--ey-cal-radius-full);
+  background-color: var(--ey-cal-primary);
+}
+
+.ey-cal-day-current-time-line-bar {
+  height: 2px;
+  background-color: var(--ey-cal-primary);
+}
+
+/* =============================================================================
+   MONTH VIEW - Visual styles
+   ============================================================================= */
+
+.ey-cal-month-header {
+  border: 1px solid var(--ey-cal-border);
+}
+
+.ey-cal-month-header-grid {
+  border-bottom: 1px solid var(--ey-cal-border);
+}
+
+.ey-cal-month-header-day {
+  padding: 0.625rem;
+  border-right: 1px solid var(--ey-cal-border);
+}
+
+.ey-cal-month-header-day:last-child {
+  border-right: none;
+}
+
+.ey-cal-month-header-day-text {
+  font-size: var(--ey-cal-font-size-sm);
+  font-weight: 500;
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-month-grid {
+  border-top: 1px solid var(--ey-cal-border);
+  border-left: 1px solid var(--ey-cal-border);
+}
+
+.ey-cal-month-day-cell {
+  padding: 0.5rem 0.25rem;
+  border-right: 1px solid var(--ey-cal-border);
+  border-bottom: 1px solid var(--ey-cal-border);
+  transition: background-color var(--ey-cal-transition);
+}
+
+.ey-cal-month-day-cell:hover {
+  background-color: var(--ey-cal-background-hover);
+}
+
+.ey-cal-month-day-cell[data-outside-month="true"] {
+  background-color: var(--ey-cal-background-muted);
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-month-day-number {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--ey-cal-radius-full);
+  font-size: var(--ey-cal-font-size-xs);
+  font-weight: 600;
+}
+
+.ey-cal-month-day-number[data-today="true"] {
+  background-color: var(--ey-cal-today-bg);
+  color: var(--ey-cal-today-text);
+  font-size: var(--ey-cal-font-size-2xs);
+}
+
+.ey-cal-month-day-number[data-past="true"]:not([data-today="true"]) {
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-month-day-number-clickable {
+  transition: box-shadow var(--ey-cal-transition-fast);
+}
+
+.ey-cal-month-day-number-clickable:hover {
+  box-shadow: 0 0 0 2px var(--ey-cal-primary-light);
+}
+
+.ey-cal-month-events-container {
+  margin-top: 0.25rem;
+}
+
+.ey-cal-month-events-list-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ey-cal-month-event-item {
+  min-height: 20px;
+  max-height: 20px;
+  border-radius: var(--ey-cal-radius-sm);
+  padding: 0 0.25rem;
+  cursor: pointer;
+  transition: background-color var(--ey-cal-transition-fast);
+}
+
+.ey-cal-month-event-item:hover {
+  background-color: var(--ey-cal-background-hover);
+}
+
+.ey-cal-month-event-dot {
+  margin-top: 0.125rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--ey-cal-radius-full);
+}
+
+.ey-cal-month-event-time {
+  font-size: var(--ey-cal-font-size-xs);
+  font-weight: 500;
+}
+
+.ey-cal-month-event-time-text {
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-month-event-title {
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-month-more-events {
+  margin-top: auto;
+  padding-top: 0.25rem;
+  padding-left: 0.875rem;
+  font-size: var(--ey-cal-font-size-xs);
+  color: var(--ey-cal-foreground-subtle);
+}
+
+.ey-cal-month-week-row {
+  border-bottom: 1px solid var(--ey-cal-border);
+}
+
+.ey-cal-month-week-row:last-child {
+  border-bottom: none;
+}
+
+.ey-cal-month-week-number-cell {
+  width: 2rem;
+  padding-top: 0.25rem;
+  border-right: 1px solid var(--ey-cal-border);
+  background-color: var(--ey-cal-background-muted);
+}
+
+.ey-cal-month-week-number {
+  font-size: var(--ey-cal-font-size-xs);
+  font-weight: 500;
+  color: var(--ey-cal-foreground-subtle);
+}
+
+.ey-cal-month-header-week-number-cell {
+  width: 2rem;
+  border-right: 1px solid var(--ey-cal-border);
+  background-color: var(--ey-cal-background-muted);
+}
+
+.ey-cal-month-event-bar {
+  padding: 0 0.25rem;
+  font-size: var(--ey-cal-font-size-xs);
+  font-weight: 500;
+  box-shadow: var(--ey-cal-shadow-sm);
+  transition: opacity var(--ey-cal-transition-fast);
+}
+
+.ey-cal-month-event-bar:hover {
+  opacity: 0.9;
+}
+
+.ey-cal-month-event-bar-time {
+  opacity: 0.8;
+}
+
+.ey-cal-month-event-item-wrapper {
+  right: 0.125rem;
+  left: 0.125rem;
+  border-radius: var(--ey-cal-radius-sm);
+  padding: 0 0.25rem;
+  font-size: var(--ey-cal-font-size-xs);
+  transition: background-color var(--ey-cal-transition-fast);
+}
+
+.ey-cal-month-event-item-wrapper:hover {
+  background-color: var(--ey-cal-background-hover);
+}
+
+.ey-cal-month-event-item-wrapper[data-past="true"] {
+  opacity: 0.7;
+}
+
+.ey-cal-month-event-bar[data-past="true"] {
+  opacity: 0.7;
+}
+
+.ey-cal-month-event-item-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+/* =============================================================================
+   PLANNING VIEW - Visual styles
+   ============================================================================= */
+
+.ey-cal-planning-scroll-container {
+  background-color: var(--ey-cal-background-muted);
+}
+
+.ey-cal-planning-date-header {
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--ey-cal-border);
+  background-color: var(--ey-cal-background-hover);
+}
+
+.ey-cal-planning-date-header-title {
+  font-size: var(--ey-cal-font-size-sm);
+  font-weight: 500;
+}
+
+.ey-cal-planning-date-header-subtitle {
+  font-size: var(--ey-cal-font-size-xs);
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-planning-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+}
+
+.ey-cal-planning-no-events {
+  font-size: var(--ey-cal-font-size-sm);
+  font-style: italic;
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-planning-empty {
+  height: 16rem;
+}
+
+.ey-cal-planning-empty-container {
+  text-align: center;
+}
+
+.ey-cal-planning-empty-icon {
+  margin-bottom: 1rem;
+  font-size: 3.75rem;
+  color: var(--ey-cal-foreground-subtle);
+}
+
+.ey-cal-planning-empty-title {
+  margin-bottom: 0.5rem;
+  font-size: var(--ey-cal-font-size-lg);
+  font-weight: 500;
+  color: var(--ey-cal-foreground);
+}
+
+.ey-cal-planning-empty-text {
+  color: var(--ey-cal-foreground-muted);
+}
+
+/* =============================================================================
+   EVENT BAR - Visual styles
+   ============================================================================= */
+
+.ey-cal-event-bar {
+  border-radius: var(--ey-cal-radius);
+  border: 1px solid var(--ey-cal-event-border);
+  transition: filter var(--ey-cal-transition), box-shadow var(--ey-cal-transition);
+}
+
+.ey-cal-event-bar:hover {
+  filter: brightness(1.1);
+}
+
+.ey-cal-event-bar:active {
+  filter: brightness(0.95);
+}
+
+.ey-cal-event-content {
+  padding: 0;
+  gap: 0.25rem;
+}
+
+.ey-cal-event-content-compact {
+  padding: 0 0.25rem;
+}
+
+.ey-cal-event-content-minimal {
+  padding: 0.125rem 0.5rem;
+}
+
+.ey-cal-event-content-full {
+  padding: 0.25rem;
+}
+
+.ey-cal-event-title {
+  font-size: var(--ey-cal-font-size-xs);
+  font-weight: 600;
+}
+
+.ey-cal-event-time {
+  font-size: var(--ey-cal-font-size-xs);
+}
+
+.ey-cal-event-time-resizing {
+  font-weight: 600;
+  color: var(--ey-cal-success);
+}
+
+.ey-cal-event-description {
+  font-size: var(--ey-cal-font-size-xs);
+  opacity: 0.8;
+}
+
+.ey-cal-event-location {
+  font-size: var(--ey-cal-font-size-xs);
+  opacity: 0.8;
+}
+
+.ey-cal-event-resize-handle {
+  height: 0.25rem;
+  background-color: currentColor;
+  opacity: 0;
+  transition: opacity var(--ey-cal-transition-fast);
+}
+
+.ey-cal-event-resize-handle:hover {
+  opacity: 0.5;
+}
+
+.ey-cal-event-resize-handle-top {
+  cursor: n-resize;
+}
+
+.ey-cal-event-resize-handle-bottom {
+  cursor: s-resize;
+}
+
+.ey-cal-event-recurring-indicator {
+  top: 0.25rem;
+  right: 0.25rem;
+}
+
+.ey-cal-event-recurring-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: currentColor;
+  opacity: 0.6;
+}
+
+.ey-cal-event-recurring-icon-text {
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.ey-cal-event-conflict-indicator {
+  margin-left: 0.5rem;
+}
+
+.ey-cal-event-conflict-indicator-compact {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: currentColor;
+  opacity: 0.75;
+}
+
+.ey-cal-event-conflict-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: var(--ey-cal-conflict);
+}
+
+/* =============================================================================
+   EVENT CARD - Visual styles
+   ============================================================================= */
+
+.ey-cal-event-card {
+  border-radius: var(--ey-cal-radius-lg);
+  border: 1px solid var(--ey-cal-border);
+  padding: 0.75rem;
+  background-color: var(--ey-cal-background);
+  transition: box-shadow var(--ey-cal-transition), border-color var(--ey-cal-transition);
+}
+
+.ey-cal-event-card:hover {
+  box-shadow: var(--ey-cal-shadow-md);
+  border-color: var(--ey-cal-border-strong);
+}
+
+.ey-cal-event-card-content {
+  gap: 0.75rem;
+}
+
+.ey-cal-event-card-time {
+  gap: 0.5rem;
+  font-size: var(--ey-cal-font-size-sm);
+}
+
+.ey-cal-event-card-time-text {
+  font-weight: 500;
+  color: var(--ey-cal-foreground);
+}
+
+.ey-cal-event-card-time-past {
+  font-weight: 500;
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-event-card-duration {
+  margin-left: 0.5rem;
+  font-size: var(--ey-cal-font-size-xs);
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-event-card-duration-past {
+  margin-left: 0.5rem;
+  font-size: var(--ey-cal-font-size-xs);
+  color: var(--ey-cal-foreground-subtle);
+}
+
+.ey-cal-event-card-title {
+  margin-left: 0.75rem;
+  font-weight: 500;
+  color: var(--ey-cal-foreground);
+}
+
+.ey-cal-event-card-title-past {
+  margin-left: 0.75rem;
+  font-weight: 500;
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-event-card-indicators {
+  margin-left: 0.5rem;
+  gap: 0.25rem;
+}
+
+.ey-cal-event-card-all-day {
+  border-radius: var(--ey-cal-radius-sm);
+  background-color: var(--ey-cal-primary-light);
+  padding: 0.25rem 0.5rem;
+  font-size: var(--ey-cal-font-size-xs);
+  font-weight: 500;
+  color: var(--ey-cal-primary);
+}
+
+.ey-cal-event-card-recurring {
+  font-size: var(--ey-cal-font-size-sm);
+  color: var(--ey-cal-foreground-subtle);
+}
+
+.ey-cal-event-card-description {
+  margin-top: 0.5rem;
+  font-size: var(--ey-cal-font-size-sm);
+  color: var(--ey-cal-foreground-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ey-cal-event-card-description-past {
+  margin-top: 0.5rem;
+  font-size: var(--ey-cal-font-size-sm);
+  color: var(--ey-cal-foreground-subtle);
+}
+
+.ey-cal-event-card-location {
+  margin-top: 0.5rem;
+  font-size: var(--ey-cal-font-size-sm);
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-event-card-location-past {
+  margin-top: 0.5rem;
+  font-size: var(--ey-cal-font-size-sm);
+  color: var(--ey-cal-foreground-subtle);
+}
+
+.ey-cal-event-card-location-icon {
+  margin-right: 0.25rem;
+}
+
+/* =============================================================================
+   STATES - Data attribute based
+   ============================================================================= */
+
+/* Event states */
+.ey-cal-event-bar[data-selected="true"] {
+  box-shadow: 0 0 0 2px var(--ey-cal-selected-ring), 0 0 0 4px rgba(59, 130, 246, 0.3);
+}
+
+.ey-cal-event-bar[data-dragging="true"] {
+  box-shadow: var(--ey-cal-shadow-lg);
+  z-index: var(--ey-cal-z-dragging);
+  opacity: 0.6;
+}
+
+.ey-cal-event-bar[data-conflict="true"] {
+  box-shadow: 0 0 0 1px var(--ey-cal-conflict);
+}
+
+.ey-cal-event-bar[data-hovered="true"] {
+  box-shadow: var(--ey-cal-shadow-md);
+}
+
+.ey-cal-event-bar[data-past="true"] {
+  opacity: 0.7;
+}
+
+/* Event size states */
+.ey-cal-event-bar[data-size="compact"] {
+  min-height: 20px;
+}
+
+.ey-cal-event-bar[data-size="minimal"] {
+  min-height: 24px;
+}
+
+.ey-cal-event-bar[data-size="full"] {
+  min-height: 32px;
+}
+
+/* Day states */
+.ey-cal-month-day-cell[data-today="true"] .ey-cal-month-day-number,
+.ey-cal-week-header-day[data-today="true"] .ey-cal-week-header-day-number,
+.ey-cal-week-header-day-number[data-today="true"],
+.ey-cal-month-day-number[data-today="true"] {
+  background-color: var(--ey-cal-today-bg);
+  color: var(--ey-cal-today-text);
+  font-weight: 500;
+}
+
+.ey-cal-planning-date-header[data-today="true"] {
+  background-color: var(--ey-cal-primary-light);
+  border-left: 3px solid var(--ey-cal-primary);
+}
+
+.ey-cal-planning-date-header[data-past="true"] {
+  opacity: 0.75;
+}
+
+.ey-cal-month-day-cell[data-outside-month="true"] {
+  background-color: var(--ey-cal-background-muted);
+}
+
+.ey-cal-month-day-cell[data-outside-month="true"] .ey-cal-month-day-number {
+  color: var(--ey-cal-foreground-muted);
+}
+
+.ey-cal-month-day-cell[data-past="true"],
+.ey-cal-event-card[data-past="true"] {
+  opacity: 0.75;
+}
+
+.ey-cal-week-day-column[data-weekend="true"],
+.ey-cal-month-day-cell[data-weekend="true"] {
+  background-color: var(--ey-cal-background-muted);
+}
+
+/* =============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================= */
+
+@media (min-width: 640px) {
+  .ey-cal-week-header-day {
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .ey-cal-week-time-slot {
+    padding-right: 0.25rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .ey-cal-month-day-cell {
+    align-items: center;
+  }
+}

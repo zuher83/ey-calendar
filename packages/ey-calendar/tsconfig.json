@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "incremental": false,
+    "composite": false,
+    "types": ["node", "jest", "@testing-library/jest-dom"]
+  },
+  "include": ["src/**/*", "__tests__/**/*", "tsup.config.ts", "jest.setup.ts"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "@emoory/ey-calendar-monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "description": "EyCalendar - A headless, themeable React calendar component monorepo",
+  "author": "Zuher ELMAS - Emoory Team",
+  "license": "MIT",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:coverage": "turbo run test:coverage",
+    "test:watch": "turbo run test:watch",
+    "test:ci": "turbo run test:ci",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "typecheck": "turbo run typecheck",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "ci:publish": "changeset publish",
+    "release": "turbo run build --filter=@emoory/ey-calendar && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.27.1",
+    "@eslint/js": "^9.39.2",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
+    "eslint": "^9.39.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.0.0",
+    "prettier": "^3.8.1",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3"
+  }
+}
