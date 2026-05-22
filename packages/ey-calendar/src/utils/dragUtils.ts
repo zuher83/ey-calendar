@@ -7,7 +7,7 @@ import type { EyCalendarEvent } from "../types/events";
 
 /**
  * Calculates the target time based on the Y position of the mouse.
- * Applies the initial offset so the event snaps to where it was grabbed.
+ * Snaps to the start of the hovered slot.
  */
 export function calculateTargetTime(
   mouseY: number,
@@ -29,9 +29,9 @@ export function calculateTargetTime(
   if (granularity === "hour") {
     snapMinutes = 0;
   } else if (granularity === "half-hour") {
-    snapMinutes = Math.round(rawMinutes / 30) * 30;
+    snapMinutes = Math.floor(rawMinutes / 30) * 30;
   } else {
-    snapMinutes = Math.round(rawMinutes / 15) * 15;
+    snapMinutes = Math.floor(rawMinutes / 15) * 15;
   }
 
   let finalHour = hour;
@@ -109,7 +109,7 @@ export function computeWeekDayDrop(
   mouseY: number,
   containerRect: DOMRect,
   cellHeight: number,
-  initialOffset: number
+  initialOffset: number = 0
 ): { start: Date; end: Date } {
   const targetTime = calculateTargetTime(mouseY, containerRect, cellHeight, initialOffset);
 

@@ -43,38 +43,43 @@ function makeEvent(overrides?: Partial<EyCalendarEvent>): EyCalendarEvent {
 describe("calculateTargetTime", () => {
   const cellHeight = 64; // 64px per hour
 
-  it("snaps to quarter-hour by default", () => {
+  it("snaps to the start of the hovered quarter-hour by default", () => {
     // mouseY = 200, containerTop = 0 → mouseYInContainer = 200
     // no offset → eventStartY = 200
     // hourFloat = 200/64 = 3.125 → hour=3, minutesFraction=0.125 → rawMinutes=7.5
-    // Math.round(7.5/15)*15 = Math.round(0.5)*15 = 1*15 = 15
-    const result = calculateTargetTime(200, makeRect(0), cellHeight, 0);
+    // Math.floor(7.5/15)*15 = 0
+    const result = calculateTargetTime(200, makeRect(0), cellHeight);
     expect(result.hour).toBe(3);
+    expect(result.minutes).toBe(0);
+  });
+
+  it("uses the cell top as the snap anchor during move", () => {
+    const result = calculateTargetTime(200, makeRect(0), cellHeight);
+    expect(result.hour).toBe(3);
+    expect(result.minutes).toBe(0);
+  });
+
+  it("uses the dragged event top when a grab offset is provided", () => {
+    const result = calculateTargetTime(200, makeRect(0), cellHeight, 48);
+
+    expect(result.hour).toBe(2);
     expect(result.minutes).toBe(15);
   });
 
-  it("applies the initial offset so the event snaps to the grab point", () => {
-    // Same mouse position but with 32px offset (half an hour's worth)
-    // effectiveY = 200 - 32 = 168 → hourFloat = 168/64 = 2.625 → hour=2, rawMinutes=37.5 → 45
-    const result = calculateTargetTime(200, makeRect(0), cellHeight, 32);
-    expect(result.hour).toBe(2);
-    expect(result.minutes).toBe(45);
-  });
-
   it("clamps hour to [0, 23]", () => {
-    const result = calculateTargetTime(999999, makeRect(0), cellHeight, 0);
+    const result = calculateTargetTime(999999, makeRect(0), cellHeight);
     expect(result.hour).toBe(23);
   });
 
   it("clamps hour to 0 for negative positions", () => {
-    const result = calculateTargetTime(-999, makeRect(0), cellHeight, 0);
+    const result = calculateTargetTime(-999, makeRect(0), cellHeight);
     expect(result.hour).toBe(0);
   });
 
   it("respects containerRect.top offset", () => {
     // Container starts at y=100, mouseY=200 → mouseYInContainer=100
     // hourFloat = 100/64 ≈ 1.5625 → hour=1, rawMinutes=33.75 → 30
-    const result = calculateTargetTime(200, makeRect(100), cellHeight, 0);
+    const result = calculateTargetTime(200, makeRect(100), cellHeight);
     expect(result.hour).toBe(1);
     expect(result.minutes).toBe(30);
   });
@@ -205,7 +210,7 @@ describe("computeWeekDayDrop", () => {
     const containerRect = makeRect(0);
 
     // mouseY = 640 → mouseYInContainer = 640 → hourFloat = 640/64 = 10 → 10:00
-    const { start, end } = computeWeekDayDrop(event, baseDate, 640, containerRect, cellHeight, 0);
+    const { start, end } = computeWeekDayDrop(event, baseDate, 640, containerRect, cellHeight);
 
     expect(start.getHours()).toBe(10);
     expect(start.getMinutes()).toBe(0);
@@ -220,25 +225,22 @@ describe("computeWeekDayDrop", () => {
     const baseDate = new Date("2024-06-15");
     const containerRect = makeRect(0);
 
-    const { start } = computeWeekDayDrop(event, baseDate, 0, containerRect, cellHeight, 0);
+    const { start } = computeWeekDayDrop(event, baseDate, 0, containerRect, cellHeight);
 
     expect(start.getFullYear()).toBe(2024);
     expect(start.getMonth()).toBe(5); // June
     expect(start.getDate()).toBe(15);
   });
 
-  it("accounts for initial offset", () => {
+  it("anchors the drop from the dragged event top and snaps to slot start", () => {
     const event = makeEvent();
     const baseDate = new Date("2024-06-10");
     const containerRect = makeRect(0);
 
-    // Without offset: 320/64 = 5h → 5:00
-    const withoutOffset = computeWeekDayDrop(event, baseDate, 320, containerRect, cellHeight, 0);
-    // With 64px offset (1 hour): effectiveY = 320 - 64 = 256 → 4:00
-    const withOffset = computeWeekDayDrop(event, baseDate, 320, containerRect, cellHeight, 64);
+    const result = computeWeekDayDrop(event, baseDate, 368, containerRect, cellHeight, 48);
 
-    expect(withoutOffset.start.getHours()).toBe(5);
-    expect(withOffset.start.getHours()).toBe(4);
+    expect(result.start.getHours()).toBe(5);
+    expect(result.start.getMinutes()).toBe(0);
   });
 });
 

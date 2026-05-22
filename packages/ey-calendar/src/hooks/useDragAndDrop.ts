@@ -21,6 +21,10 @@ import {
   computeWeekDayDrop,
 } from "../utils/dragUtils";
 
+// Event bars and day columns each call useDragAndDrop(), so move offsets
+// must live outside a single hook instance for the final drop to reuse them.
+const dragMoveOffsets = new Map<string, number>();
+
 function getMonthSegmentStartOffset(sourceElement: Element): number {
   if (!(sourceElement instanceof HTMLElement)) {
     return 0;
@@ -69,7 +73,7 @@ export function useDragAndDrop() {
   const [draggedEvent, setDraggedEvent] = useState<EyCalendarEvent | null>(null);
   const [tempPosition, setTempPosition] = useState<EventPosition | null>(null);
 
-  // Initial drag data (offset, original dates) — written by makeDraggable, read by makeDropTarget
+  // Initial drag data (original dates / resize state) — written by makeDraggable, read by makeDropTarget
   const dragInitialData = useRef<{
     eventId?: string;
     originalStart?: Date;
@@ -79,9 +83,6 @@ export function useDragAndDrop() {
     isResizing?: boolean;
     resizeHandle?: "top" | "bottom";
   }>({});
-
-  // Per-event mouse offsets (captured at drag start)
-  const dragOffsets = useRef<Map<string, number>>(new Map());
 
   /** Reset all drag-related UI state */
   const resetDragState = useCallback(() => {
@@ -110,7 +111,7 @@ export function useDragAndDrop() {
         onDragStart: ({ location }) => {
           let initialOffset = 0;
 
-          if (location.initial.input.clientY) {
+          if (location.initial.input.clientY !== undefined) {
             const container =
               element.closest('[data-testid="day-column"]') ||
               element.closest('[data-drop-target="true"]') ||
@@ -122,6 +123,7 @@ export function useDragAndDrop() {
               const mouseY = location.initial.input.clientY;
               const eventTopInContainer = elementRect.top - containerRect.top;
               const mouseYInContainer = mouseY - containerRect.top;
+
               initialOffset = mouseYInContainer - eventTopInContainer;
             }
           }
@@ -134,7 +136,7 @@ export function useDragAndDrop() {
             initialOffset,
             isResizing: false,
           };
-          dragOffsets.current.set(event.id, initialOffset);
+          dragMoveOffsets.set(event.id, initialOffset);
 
           setIsDragging(true);
           setDraggedEvent(event);
@@ -163,10 +165,14 @@ export function useDragAndDrop() {
           }
         },
         onDrop: () => {
+          const draggedEventId = dragInitialData.current.eventId;
+
           resetDragState();
           setTimeout(() => {
             dragInitialData.current = {};
-            dragOffsets.current.clear();
+            if (draggedEventId) {
+              dragMoveOffsets.delete(draggedEventId);
+            }
           }, 200);
         },
       });
@@ -199,9 +205,6 @@ export function useDragAndDrop() {
           const sourcePayload = source.data as unknown as DragMovePayload;
           const event = sourcePayload.event;
           if (!event) return;
-
-          const dragData = dragInitialData.current;
-          const initialOffset = dragOffsets.current.get(event.id) ?? dragData.initialOffset ?? 0;
 
           let updates: Partial<EyCalendarEvent>;
 
@@ -240,7 +243,7 @@ export function useDragAndDrop() {
             mouseY,
             containerRect,
             data.cellHeight,
-            initialOffset
+            dragMoveOffsets.get(event.id) ?? dragInitialData.current.initialOffset ?? 0
           );
 
           updates = { start, end };
@@ -321,8 +324,7 @@ export function useDragAndDrop() {
           const targetTime = calculateTargetTime(
             location.current.input.clientY,
             containerRect,
-            effectiveCellHeight,
-            0
+            effectiveCellHeight
           );
 
           const targetDate = new Date(dragData.originalStart);
@@ -364,8 +366,7 @@ export function useDragAndDrop() {
           const targetTime = calculateTargetTime(
             location.current.input.clientY,
             containerRect,
-            effectiveCellHeight,
-            0
+            effectiveCellHeight
           );
 
           const targetDate = new Date(dragData.originalStart);
@@ -411,9 +412,7 @@ export function useDragAndDrop() {
   // ============================================================================
 
   useEffect(() => {
-    const offsetsRef = dragOffsets.current;
     return () => {
-      offsetsRef.clear();
       dragInitialData.current = {};
     };
   }, []);
