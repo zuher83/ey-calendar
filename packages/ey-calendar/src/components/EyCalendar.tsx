@@ -197,7 +197,6 @@ export function EyCalendar(props: EyCalendarProps) {
     theme,
     unstyled = false,
     classNames,
-    components,
     isolateZIndex = true,
   } = mergedOptions;
   // Initialize the class getter with headless options

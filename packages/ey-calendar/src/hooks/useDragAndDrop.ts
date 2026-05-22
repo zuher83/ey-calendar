@@ -750,7 +750,7 @@ export function useDragAndDrop() {
           const targetDate = new Date(dragData.originalStart);
           targetDate.setHours(targetTime.hour, targetTime.minutes, 0, 0);
 
-          let updates: Partial<EyCalendarEvent> = {};
+          let updates: Partial<EyCalendarEvent>;
           let finalStart = dragData.originalStart;
           let finalEnd = dragData.originalEnd;
 

@@ -45,6 +45,7 @@ Thumbs.db
 .github/prompt/
 *.code-workspace
 .github/*-instructions.md
+.github/skills
 .github/instructions
 .claude/*
 .local/
