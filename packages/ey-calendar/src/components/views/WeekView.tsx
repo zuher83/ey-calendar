@@ -33,6 +33,7 @@ export function WeekView({ className = "" }: WeekViewProps) {
   const { options } = useOptions();
   const { viewInfo } = useTimeCalculations();
   const [isDesktop, setIsDesktop] = useState(false);
+  const [scrollbarGutter, setScrollbarGutter] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const labels = useEyCalendarLabels(options.labels, options.locale);
 
@@ -91,6 +92,37 @@ export function WeekView({ className = "" }: WeekViewProps) {
     }
   }, [cellHeight]);
 
+  useEffect(() => {
+    const updateScrollbarGutter = () => {
+      const element = scrollContainerRef.current;
+      if (!element) return;
+
+      setScrollbarGutter(element.offsetWidth - element.clientWidth);
+    };
+
+    updateScrollbarGutter();
+
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.addEventListener("resize", updateScrollbarGutter);
+
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => updateScrollbarGutter())
+        : undefined;
+
+    if (observer && scrollContainerRef.current) {
+      observer.observe(scrollContainerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", updateScrollbarGutter);
+      observer?.disconnect();
+    };
+  }, [isDesktop]);
+
   // Full 24h grid (0h to 23h)
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
@@ -134,6 +166,7 @@ export function WeekView({ className = "" }: WeekViewProps) {
               gridTemplateColumns: isDesktop
                 ? "48px repeat(7, minmax(0, 1fr))"
                 : "48px repeat(5, minmax(0, 1fr))",
+              marginInlineEnd: `${scrollbarGutter}px`,
             }}
           >
             {/* Empty column for hours */}
@@ -166,6 +199,7 @@ export function WeekView({ className = "" }: WeekViewProps) {
                   ? "48px repeat(7, minmax(0, 1fr))"
                   : "48px repeat(5, minmax(0, 1fr))",
                 height: allDaySectionHeight,
+                marginInlineEnd: `${scrollbarGutter}px`,
               }}
             >
               {/* Empty column for alignment */}
