@@ -54,13 +54,14 @@ export function calculateTargetTime(
  */
 export function computeMonthDrop(
   event: EyCalendarEvent,
-  targetDate: Date
+  targetDate: Date,
+  anchorDayOffset: number = 0
 ): { start: Date; end: Date } {
   const originalStart = new Date(event.start);
-  const originalEnd = new Date(event.end);
   const base = new Date(targetDate);
 
   const newStart = new Date(base);
+  newStart.setDate(newStart.getDate() - Math.max(0, anchorDayOffset));
   newStart.setHours(
     originalStart.getHours(),
     originalStart.getMinutes(),
@@ -68,23 +69,34 @@ export function computeMonthDrop(
     originalStart.getMilliseconds()
   );
 
-  const newEnd = new Date(base);
-  newEnd.setHours(
-    originalEnd.getHours(),
-    originalEnd.getMinutes(),
-    originalEnd.getSeconds(),
-    originalEnd.getMilliseconds()
-  );
-
-  // Preserve multi-day span
-  const durationDays = Math.ceil(
-    (originalEnd.getTime() - originalStart.getTime()) / (24 * 60 * 60 * 1000)
-  );
-  if (durationDays > 1) {
-    newEnd.setDate(newStart.getDate() + durationDays - 1);
-  }
+  const duration = event.end.getTime() - event.start.getTime();
+  const newEnd = new Date(newStart.getTime() + duration);
 
   return { start: newStart, end: newEnd };
+}
+
+/**
+ * Resolves which calendar day is targeted when dropping on a month-view bar segment.
+ */
+export function computeMonthDropTargetDate(
+  baseTargetDate: Date,
+  segmentSpan: number,
+  relativeX: number,
+  width: number
+): Date {
+  const targetDate = new Date(baseTargetDate);
+
+  if (!Number.isFinite(segmentSpan) || segmentSpan <= 1 || !Number.isFinite(width) || width <= 0) {
+    return targetDate;
+  }
+
+  const boundedRelativeX = Math.max(0, Math.min(width - 1, relativeX));
+  const dayWidth = width / segmentSpan;
+  const dayOffset = Math.max(0, Math.min(segmentSpan - 1, Math.floor(boundedRelativeX / dayWidth)));
+
+  targetDate.setDate(targetDate.getDate() + dayOffset);
+
+  return targetDate;
 }
 
 /**

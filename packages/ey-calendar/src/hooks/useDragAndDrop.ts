@@ -17,8 +17,39 @@ import {
   buildDropTarget,
   calculateTargetTime,
   computeMonthDrop,
+  computeMonthDropTargetDate,
   computeWeekDayDrop,
 } from "../utils/dragUtils";
+
+function getMonthSegmentStartOffset(sourceElement: Element): number {
+  if (!(sourceElement instanceof HTMLElement)) {
+    return 0;
+  }
+
+  const segmentStartOffsetDays = Number(sourceElement.dataset.segmentStartOffsetDays ?? "0");
+
+  return Number.isFinite(segmentStartOffsetDays) ? Math.max(0, segmentStartOffsetDays) : 0;
+}
+
+function getMonthDropTargetDate(
+  baseTargetDate: Date,
+  targetElement: Element,
+  currentClientX?: number
+): Date {
+  if (!(targetElement instanceof HTMLElement) || currentClientX === undefined) {
+    return new Date(baseTargetDate);
+  }
+
+  const segmentSpan = Number(targetElement.dataset.segmentSpan ?? "1");
+  const rect = targetElement.getBoundingClientRect();
+
+  return computeMonthDropTargetDate(
+    baseTargetDate,
+    segmentSpan,
+    currentClientX - rect.left,
+    rect.width
+  );
+}
 
 /**
  * Hook for managing drag & drop of events
@@ -175,7 +206,17 @@ export function useDragAndDrop() {
           let updates: Partial<EyCalendarEvent>;
 
           if (data.viewMode === "month") {
-            const { start, end } = computeMonthDrop(event, data.targetDate);
+            const monthSegmentStartOffset = getMonthSegmentStartOffset(source.element);
+            const monthTargetDate = getMonthDropTargetDate(
+              data.targetDate,
+              element,
+              location.current.input.clientX
+            );
+            const { start, end } = computeMonthDrop(
+              event,
+              monthTargetDate,
+              monthSegmentStartOffset
+            );
             updates = { start, end };
 
             if (data.targetResourceId && data.targetResourceId !== event.resourceId) {

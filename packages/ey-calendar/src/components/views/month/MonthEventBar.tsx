@@ -14,13 +14,20 @@ import {
 
 export interface MonthEventBarProps {
   segment: EventSegment;
+  segmentStartOffsetDays: number;
+  visibleSegmentStartDate: Date;
   locale?: import("date-fns").Locale;
 }
 
-export function MonthEventBar({ segment, locale }: MonthEventBarProps) {
+export function MonthEventBar({
+  segment,
+  segmentStartOffsetDays,
+  visibleSegmentStartDate,
+  locale,
+}: MonthEventBarProps) {
   const { callbacks } = useCallbacks();
   const { options } = useOptions();
-  const { makeDraggable } = useDragAndDrop();
+  const { makeDraggable, makeDropTarget } = useDragAndDrop();
   const eventRef = useRef<HTMLDivElement>(null);
 
   const { event, startCol, span, isStart, isEnd, row } = segment;
@@ -36,9 +43,19 @@ export function MonthEventBar({ segment, locale }: MonthEventBarProps) {
   useEffect(() => {
     const element = eventRef.current;
     if (element) {
-      return makeDraggable(element, event);
+      const cleanupDraggable = makeDraggable(element, event);
+      const cleanupDropTarget = makeDropTarget(element, {
+        targetDate: visibleSegmentStartDate,
+        targetResourceId: undefined,
+        viewMode: "month",
+      });
+
+      return () => {
+        cleanupDropTarget();
+        cleanupDraggable();
+      };
     }
-  }, [event, makeDraggable]);
+  }, [event, makeDraggable, makeDropTarget, visibleSegmentStartDate]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -74,6 +91,8 @@ export function MonthEventBar({ segment, locale }: MonthEventBarProps) {
       data-event-id={event.id}
       data-start={isStart ? "true" : "false"}
       data-end={isEnd ? "true" : "false"}
+      data-segment-span={span}
+      data-segment-start-offset-days={segmentStartOffsetDays}
       data-past={isPastEvent ? "true" : undefined}
       style={{
         left: `calc(${leftPercent}% + 2px)`,

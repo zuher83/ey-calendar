@@ -3,6 +3,7 @@ import {
   buildDropTarget,
   calculateTargetTime,
   computeMonthDrop,
+  computeMonthDropTargetDate,
   computeWeekDayDrop,
 } from "../../src/utils/dragUtils";
 import type { EyCalendarEvent } from "../../src/types";
@@ -106,15 +107,34 @@ describe("computeMonthDrop", () => {
   it("preserves multi-day span", () => {
     const event = makeEvent({
       start: new Date("2024-06-10T09:00:00"),
-      end: new Date("2024-06-12T09:00:00"), // 48h = durationDays=2
+      end: new Date("2024-06-12T09:00:00"), // 48h, spanning June 10-12 inclusive
     });
     const targetDate = new Date("2024-07-01");
 
     const { start, end } = computeMonthDrop(event, targetDate);
 
-    // durationDays=2, so newEnd.setDate(1 + 2 - 1) = 2
+    // Exact duration is preserved, so July 1 09:00 + 48h = July 3 09:00
     expect(start.getDate()).toBe(1);
-    expect(end.getDate()).toBe(2);
+    expect(end.getDate()).toBe(3);
+  });
+
+  it("reanchors a multi-day event from the visible segment start when clipped", () => {
+    const event = makeEvent({
+      start: new Date("2026-04-28T00:00:00"),
+      end: new Date("2026-04-29T23:59:00"),
+    });
+    const targetDate = new Date("2026-04-30T00:00:00");
+
+    const { start, end } = computeMonthDrop(event, targetDate, 1);
+
+    expect(start.getFullYear()).toBe(2026);
+    expect(start.getMonth()).toBe(3);
+    expect(start.getDate()).toBe(29);
+    expect(start.getHours()).toBe(0);
+    expect(start.getMinutes()).toBe(0);
+    expect(end.getDate()).toBe(30);
+    expect(end.getHours()).toBe(23);
+    expect(end.getMinutes()).toBe(59);
   });
 
   it("single-day event: end stays on same target day", () => {
@@ -140,6 +160,32 @@ describe("computeMonthDrop", () => {
 
     expect(event.start).toEqual(start);
     expect(event.end).toEqual(end);
+  });
+});
+
+describe("computeMonthDropTargetDate", () => {
+  it("keeps the base date for single-day targets", () => {
+    const baseDate = new Date("2026-05-14T00:00:00");
+
+    const result = computeMonthDropTargetDate(baseDate, 1, 80, 200);
+
+    expect(result.getDate()).toBe(14);
+  });
+
+  it("advances to the next day when hovering the second segment of a two-day bar", () => {
+    const baseDate = new Date("2026-05-14T00:00:00");
+
+    const result = computeMonthDropTargetDate(baseDate, 2, 150, 200);
+
+    expect(result.getDate()).toBe(15);
+  });
+
+  it("clamps to the last visible day when hovering near the right edge", () => {
+    const baseDate = new Date("2026-05-14T00:00:00");
+
+    const result = computeMonthDropTargetDate(baseDate, 3, 999, 300);
+
+    expect(result.getDate()).toBe(16);
   });
 });
 

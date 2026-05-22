@@ -14,6 +14,8 @@ import { getWeek, isSameDay, isSameMonth } from "date-fns";
 import { MonthDayCell } from "./MonthDayCell";
 import { MonthEventBar } from "./MonthEventBar";
 
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
 export interface MonthWeekRowProps {
   weekDays: Date[];
   events: EyCalendarEvent[];
@@ -123,11 +125,34 @@ export function MonthWeekRow({
         data-eycalendar-events-layer=""
       >
         {segments.map((segment) => (
+          (() => {
+            const eventStartDay = new Date(
+              segment.event.start.getFullYear(),
+              segment.event.start.getMonth(),
+              segment.event.start.getDate()
+            );
+            const visibleSegmentStartDay = new Date(
+              weekDays[segment.startCol].getFullYear(),
+              weekDays[segment.startCol].getMonth(),
+              weekDays[segment.startCol].getDate()
+            );
+            const segmentStartOffsetDays = Math.max(
+              0,
+              Math.round(
+                (visibleSegmentStartDay.getTime() - eventStartDay.getTime()) / DAY_IN_MS
+              )
+            );
+
+            return (
           <MonthEventBar
             key={`${segment.event.id}-${segment.startCol}`}
             segment={segment}
+            segmentStartOffsetDays={segmentStartOffsetDays}
+            visibleSegmentStartDate={visibleSegmentStartDay}
             locale={locale}
           />
+            );
+          })()
         ))}
       </div>
     </div>
