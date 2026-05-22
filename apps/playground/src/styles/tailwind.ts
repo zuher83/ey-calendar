@@ -124,7 +124,7 @@ export const tailwindTheme: Partial<Record<EyCalendarClassKey, string>> = {
   monthEventItemTime: "text-gray-500 dark:text-gray-400",
   monthEventItemTitle: "text-gray-900 dark:text-gray-100",
   monthEventDot: "mt-0.5 h-2 w-2 rounded-full",
-  monthEventDotMobile: "",
+  monthEventDotMobile: "sm:hidden",
   monthEventContent: "",
   monthEventTime: "text-xs font-medium",
   monthEventTimeText: "text-gray-600 dark:text-gray-400",
