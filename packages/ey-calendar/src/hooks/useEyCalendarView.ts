@@ -7,8 +7,6 @@ import {
   addMonths,
   addWeeks,
   endOfDay,
-  endOfMonth,
-  endOfWeek,
   format,
   isSameDay,
   isSameMonth,
@@ -19,8 +17,9 @@ import {
 } from "date-fns";
 import { useEvents } from "../context/EventsContext";
 import { useOptions } from "../context/OptionsContext";
-import { useView } from "../context/ViewContext";
+import { useViewActions, useViewCurrentDate, useViewCurrentView } from "../context/ViewContext";
 import type { EyCalendarEvent, ViewMode } from "../types";
+import { getVisibleDateRange } from "../utils/viewRangeUtils";
 import { useEyCalendarLabels } from "./useEyCalendarLabels";
 
 /**
@@ -91,9 +90,10 @@ interface CalendarViewResult {
  * Hook pour gérer la navigation entre vues et l'état de la vue courante
  */
 export function useEyCalendarView(): CalendarViewResult {
-  const { state: viewState, setViewMode, setCurrentDate } = useView();
+  const currentView = useViewCurrentView();
+  const currentDate = useViewCurrentDate();
+  const { setViewMode, setCurrentDate } = useViewActions();
   const { state: eventsState } = useEvents();
-  const { currentView, currentDate } = viewState;
   const { events } = eventsState;
 
   // Get options from OptionsContext (labels, locale)
@@ -103,68 +103,9 @@ export function useEyCalendarView(): CalendarViewResult {
 
   // Calcul de la plage visible selon la vue
   const visibleRange = useMemo(() => {
-    let start: Date;
-    let end: Date;
-    let days: Date[] = [];
+    const range = getVisibleDateRange(currentDate, currentView);
 
-    switch (currentView) {
-      case "month": {
-        start = startOfMonth(currentDate);
-        end = endOfMonth(currentDate);
-
-        // Ajouter les jours du mois précédent et suivant pour compléter la grille
-        const monthStart = startOfWeek(start, { weekStartsOn: 1 }); // Lundi
-        const monthEnd = endOfWeek(end, { weekStartsOn: 1 });
-
-        start = monthStart;
-        end = monthEnd;
-
-        // Générer tous les jours de la grille mensuelle
-        let currentDay = start;
-        while (currentDay <= end) {
-          days.push(new Date(currentDay));
-          currentDay = addDays(currentDay, 1);
-        }
-        break;
-      }
-
-      case "week": {
-        start = startOfWeek(currentDate, { weekStartsOn: 1 }); // Lundi
-        end = endOfWeek(currentDate, { weekStartsOn: 1 }); // Dimanche
-
-        // Générer les 7 jours de la semaine
-        for (let i = 0; i < 7; i++) {
-          days.push(addDays(start, i));
-        }
-        break;
-      }
-
-      case "day": {
-        start = startOfDay(currentDate);
-        end = endOfDay(currentDate);
-        days = [new Date(currentDate)];
-        break;
-      }
-
-      case "planning": {
-        // Vue planning : affiche généralement une semaine ou un mois
-        start = startOfWeek(currentDate, { weekStartsOn: 1 });
-        end = endOfWeek(currentDate, { weekStartsOn: 1 });
-
-        for (let i = 0; i < 7; i++) {
-          days.push(addDays(start, i));
-        }
-        break;
-      }
-
-      default: {
-        start = startOfDay(currentDate);
-        end = endOfDay(currentDate);
-        days = [new Date(currentDate)];
-      }
-    }
-
-    return { start, end, days };
+    return { start: range.start, end: range.end, days: range.days };
   }, [currentView, currentDate]);
 
   // Informations de navigation

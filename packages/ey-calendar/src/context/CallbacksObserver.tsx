@@ -8,7 +8,12 @@
 
 import { useEffect, useRef } from "react";
 import { useCallbacks } from "./CallbacksContext";
-import { useView } from "./ViewContext";
+import {
+  useViewCurrentDate,
+  useViewCurrentView,
+  useViewDateRange,
+  useViewScrollPosition,
+} from "./ViewContext";
 
 /**
  * Component that observes state changes and triggers callbacks
@@ -16,7 +21,10 @@ import { useView } from "./ViewContext";
  */
 export function CallbacksObserver() {
   const { callbacks } = useCallbacks();
-  const { state: viewState } = useView();
+  const currentDate = useViewCurrentDate();
+  const currentView = useViewCurrentView();
+  const { startDate, endDate } = useViewDateRange();
+  const scrollPosition = useViewScrollPosition();
 
   // Track previous values to detect changes
   const prevDateRange = useRef<{ start: Date; end: Date } | null>(null);
@@ -26,7 +34,7 @@ export function CallbacksObserver() {
 
   // Trigger onDateRangeChange when date range changes
   useEffect(() => {
-    const currentRange = { start: viewState.startDate, end: viewState.endDate };
+    const currentRange = { start: startDate, end: endDate };
 
     // Skip first render
     if (!prevDateRange.current) {
@@ -44,63 +52,63 @@ export function CallbacksObserver() {
       callbacks.onDateRangeChange?.({ start: currentRange.start, end: currentRange.end });
       prevDateRange.current = currentRange;
     }
-  }, [viewState.startDate, viewState.endDate, callbacks]);
+  }, [startDate, endDate, callbacks]);
 
   // Trigger onDateChange when current date changes
   useEffect(() => {
     // Skip first render
     if (!prevCurrentDate.current) {
-      prevCurrentDate.current = viewState.currentDate;
+      prevCurrentDate.current = currentDate;
 
       return;
     }
 
     // Check if date actually changed
-    const hasChanged = prevCurrentDate.current.getTime() !== viewState.currentDate.getTime();
+    const hasChanged = prevCurrentDate.current.getTime() !== currentDate.getTime();
 
     if (hasChanged) {
-      callbacks.onDateChange?.(viewState.currentDate);
-      prevCurrentDate.current = viewState.currentDate;
+      callbacks.onDateChange?.(currentDate);
+      prevCurrentDate.current = currentDate;
     }
-  }, [viewState.currentDate, callbacks]);
+  }, [currentDate, callbacks]);
 
   // Trigger onViewChange when view mode changes
   useEffect(() => {
     // Skip first render
     if (!prevCurrentView.current) {
-      prevCurrentView.current = viewState.currentView;
+      prevCurrentView.current = currentView;
 
       return;
     }
 
     // Check if view actually changed
-    const hasChanged = prevCurrentView.current !== viewState.currentView;
+    const hasChanged = prevCurrentView.current !== currentView;
 
     if (hasChanged) {
-      callbacks.onViewChange?.(viewState.currentView, viewState.currentDate);
-      prevCurrentView.current = viewState.currentView;
+      callbacks.onViewChange?.(currentView, currentDate);
+      prevCurrentView.current = currentView;
     }
-  }, [viewState.currentView, viewState.currentDate, callbacks]);
+  }, [currentView, currentDate, callbacks]);
 
   // Trigger onScrollChange when scroll position changes
   useEffect(() => {
     // Skip first render
     if (!prevScrollPosition.current) {
-      prevScrollPosition.current = viewState.scrollPosition;
+      prevScrollPosition.current = scrollPosition;
 
       return;
     }
 
     // Check if position actually changed
     const hasChanged =
-      prevScrollPosition.current.x !== viewState.scrollPosition.x ||
-      prevScrollPosition.current.y !== viewState.scrollPosition.y;
+      prevScrollPosition.current.x !== scrollPosition.x ||
+      prevScrollPosition.current.y !== scrollPosition.y;
 
     if (hasChanged) {
-      callbacks.onScrollChange?.(viewState.scrollPosition);
-      prevScrollPosition.current = viewState.scrollPosition;
+      callbacks.onScrollChange?.(scrollPosition);
+      prevScrollPosition.current = scrollPosition;
     }
-  }, [viewState.scrollPosition, callbacks]);
+  }, [scrollPosition, callbacks]);
 
   // This component doesn't render anything
   return null;

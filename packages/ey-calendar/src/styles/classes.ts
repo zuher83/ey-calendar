@@ -144,8 +144,18 @@ export const DEFAULT_CALENDAR_CLASSES = {
   dayEventWrapper: "ey-cal-day-event-wrapper",
   /** Day all-day section (sticky header) */
   dayAllDaySection: "ey-cal-day-all-day-section",
+  /** Day all-day section layout row */
+  dayAllDayLayout: "ey-cal-day-all-day-layout",
+  /** Day all-day label column */
+  dayAllDayLabel: "ey-cal-day-all-day-label",
+  /** Day all-day content container */
+  dayAllDayContent: "ey-cal-day-all-day-content",
+  /** Day all-day overflow label */
+  dayAllDayMore: "ey-cal-day-all-day-more",
   /** Day all-day event bar */
   dayAllDayEventBar: "ey-cal-day-all-day-event-bar",
+  /** Day all-day event title */
+  dayAllDayTitle: "ey-cal-day-all-day-title",
   /** Current time line */
   dayCurrentTimeLine: "ey-cal-day-current-time-line",
   /** Current time line inner container */

@@ -5,10 +5,7 @@ import { useMemo } from "react";
 import {
   addHours,
   addMinutes,
-  eachDayOfInterval,
   endOfDay,
-  endOfMonth,
-  endOfWeek,
   format,
   getDay,
   getHours,
@@ -17,13 +14,12 @@ import {
   isToday,
   isWeekend,
   startOfDay,
-  startOfMonth,
-  startOfWeek,
 } from "date-fns";
 import { DEFAULT_TIME_SLOT_CONFIG } from "../constants";
 import { useOptions } from "../context/OptionsContext";
-import { useView } from "../context/ViewContext";
+import { useViewCurrentDate, useViewCurrentView } from "../context/ViewContext";
 import type { TimeSlot } from "../types";
+import { getVisibleDateRange } from "../utils/viewRangeUtils";
 
 /**
  * Interface pour les informations de vue
@@ -86,54 +82,20 @@ interface TimeCalculationsResult {
  * Hook for all calendar time calculations
  */
 export function useTimeCalculations(): TimeCalculationsResult {
-  const { state } = useView();
-  const { currentView, currentDate } = state;
+  const currentView = useViewCurrentView();
+  const currentDate = useViewCurrentDate();
   const { options } = useOptions();
   const locale = options.locale;
 
   // Calculation of start and end dates according to view
   const viewInfo = useMemo((): ViewInfo => {
-    let startDate: Date;
-    let endDate: Date;
-    let visibleDays: Date[];
-
-    switch (currentView) {
-      case "month":
-        startDate = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 1 }); // Lundi
-        endDate = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 1 });
-        visibleDays = eachDayOfInterval({ start: startDate, end: endDate });
-        break;
-
-      case "week":
-        startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
-        endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
-        visibleDays = eachDayOfInterval({ start: startDate, end: endDate });
-        break;
-
-      case "day":
-        startDate = startOfDay(currentDate);
-        endDate = endOfDay(currentDate);
-        visibleDays = [currentDate];
-        break;
-
-      case "planning":
-        // Pour la vue planning, on prend la semaine courante par défaut
-        startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
-        endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
-        visibleDays = eachDayOfInterval({ start: startDate, end: endDate });
-        break;
-
-      default:
-        startDate = startOfDay(currentDate);
-        endDate = endOfDay(currentDate);
-        visibleDays = [currentDate];
-    }
+    const visibleRange = getVisibleDateRange(currentDate, currentView);
 
     return {
-      startDate,
-      endDate,
-      totalDays: visibleDays.length,
-      visibleDays,
+      startDate: visibleRange.start,
+      endDate: visibleRange.end,
+      totalDays: visibleRange.days.length,
+      visibleDays: visibleRange.days,
     };
   }, [currentView, currentDate]);
 

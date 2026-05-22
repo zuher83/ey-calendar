@@ -63,6 +63,8 @@ export function EyCalendarToolbar({
   return (
     <div
       className={getClass("toolbar") + (className ? ` ${className}` : "")}
+      role="toolbar"
+      aria-label="Calendar toolbar"
       data-eycalendar-toolbar=""
     >
       {/* Left section: Navigation */}
@@ -88,9 +90,10 @@ export function EyCalendarToolbar({
               disabled={!navigation.canGoPrevious}
               className={getClass("buttonNav")}
               title={navigation.previousLabel}
+              aria-label={navigation.previousLabel}
               data-eycalendar-button-nav="prev"
             >
-              <ChevronLeftIcon className={getClass("iconChevron")} />
+              <ChevronLeftIcon className={getClass("iconChevron")} aria-hidden="true" />
             </Button>
             <Button
               variant="outline"
@@ -99,9 +102,10 @@ export function EyCalendarToolbar({
               disabled={!navigation.canGoNext}
               className={getClass("buttonNav")}
               title={navigation.nextLabel}
+              aria-label={navigation.nextLabel}
               data-eycalendar-button-nav="next"
             >
-              <ChevronRightIcon className={getClass("iconChevron")} />
+              <ChevronRightIcon className={getClass("iconChevron")} aria-hidden="true" />
             </Button>
           </>
         )}
@@ -151,6 +155,7 @@ function ViewSelector({ currentView, onViewChange, getClass, Button }: ViewSelec
           size="sm"
           onClick={() => onViewChange(view)}
           className={currentView === view ? getClass("buttonViewActive") : getClass("buttonView")}
+          aria-pressed={currentView === view}
           data-eycalendar-button-view={view}
           data-active={currentView === view ? "true" : undefined}
         >

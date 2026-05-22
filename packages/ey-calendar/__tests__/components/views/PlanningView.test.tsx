@@ -194,9 +194,9 @@ describe("PlanningView", () => {
         }),
         createMockEvent({
           id: "week-2",
-          title: "Next Week",
-          start: new Date(2024, 0, 20, 10, 0),
-          end: new Date(2024, 0, 20, 11, 0),
+          title: "Outside Visible Range",
+          start: new Date(2024, 0, 22, 10, 0),
+          end: new Date(2024, 0, 22, 11, 0),
         }),
       ];
 
@@ -206,9 +206,8 @@ describe("PlanningView", () => {
         initialView: "planning",
       });
 
-      // Both should be visible in planning view
       expect(screen.getByText("This Week")).toBeInTheDocument();
-      expect(screen.getByText("Next Week")).toBeInTheDocument();
+      expect(screen.queryByText("Outside Visible Range")).not.toBeInTheDocument();
     });
   });
 

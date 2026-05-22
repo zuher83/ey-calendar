@@ -35,7 +35,7 @@ export interface EyCalendarEvent {
   zIndex?: number;
 
   // Custom data
-  custom?: Record<string, any>;
+  custom?: Record<string, unknown>;
 }
 
 /**
@@ -80,7 +80,7 @@ export interface EventFieldMapping {
 /**
  * Custom calendar event data
  */
-export interface EyCalendarEventData<T = any> {
+export interface EyCalendarEventData<T = unknown> {
   event: EyCalendarEvent;
   source: "user" | "system" | "external";
   data?: T;

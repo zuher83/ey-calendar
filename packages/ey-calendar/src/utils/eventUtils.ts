@@ -125,27 +125,6 @@ export function getEventColor(event: EyCalendarEvent): string {
 }
 
 /**
- * Converts hex color to Tailwind classes for colored dots
- */
-export function getEventDotClasses(color: string): string {
-  // Mapping common colors to Tailwind classes
-  const colorMap: Record<string, string> = {
-    "#3b82f6": "bg-blue-500",
-    "#10b981": "bg-emerald-500",
-    "#f59e0b": "bg-amber-500",
-    "#8b5cf6": "bg-violet-500",
-    "#ef4444": "bg-red-500",
-    "#6366f1": "bg-indigo-500",
-    "#06b6d4": "bg-cyan-500",
-    "#84cc16": "bg-lime-500",
-    "#f97316": "bg-orange-500",
-    "#ec4899": "bg-pink-500",
-  };
-
-  return colorMap[color] || "bg-gray-400";
-}
-
-/**
  * Determines the optimum text color for a given background
  */
 export function getOptimalTextColor(backgroundColor: string): string {

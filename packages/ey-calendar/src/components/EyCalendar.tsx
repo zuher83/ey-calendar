@@ -5,7 +5,7 @@ import React from "react";
 import { DEFAULT_HOUR_CELL_HEIGHT, DEFAULT_OPTIONS } from "../constants";
 import { EyCalendarProvider } from "../context/CompositeEyCalendarContext";
 import { useOptions } from "../context/OptionsContext";
-import { useView } from "../context/ViewContext";
+import { useViewCurrentView } from "../context/ViewContext";
 import { useContainerHeight } from "../hooks/useContainerHeight";
 import { useEyCalendarClasses } from "../hooks/useEyCalendarClasses";
 import type {
@@ -284,7 +284,7 @@ export function EyCalendar(props: EyCalendarProps) {
  * Internal component to route views based on current state
  */
 function EyCalendarViewRouter() {
-  const { state: viewState } = useView();
+  const currentView = useViewCurrentView();
   const { options } = useOptions();
 
   // Get class getter from context options
@@ -300,10 +300,10 @@ function EyCalendarViewRouter() {
       data-eycalendar-view-container=""
       data-testid="calendar-view-container"
     >
-      {viewState.currentView === "month" && <MonthView />}
-      {viewState.currentView === "week" && <WeekView />}
-      {viewState.currentView === "day" && <DayView />}
-      {viewState.currentView === "planning" && <PlanningView />}
+      {currentView === "month" && <MonthView />}
+      {currentView === "week" && <WeekView />}
+      {currentView === "day" && <DayView />}
+      {currentView === "planning" && <PlanningView />}
     </div>
   );
 }

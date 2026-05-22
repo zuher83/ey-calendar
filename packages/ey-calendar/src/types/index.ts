@@ -88,3 +88,13 @@ export type {
   DefaultBadgeProps,
   IconProps,
 } from "./components";
+
+export type {
+  // DnD payloads
+  DragMovePayload,
+  DragResizePayload,
+  DragPayload,
+  WeekDayDropPayload,
+  MonthDropPayload,
+  DropPayload,
+} from "./dnd";

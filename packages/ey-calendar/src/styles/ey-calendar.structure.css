@@ -353,11 +353,49 @@
 }
 
 .ey-cal-day-all-day-section {
-  /* Layout handled by parent */
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.ey-cal-day-all-day-layout {
+  display: flex;
+}
+
+.ey-cal-day-all-day-label {
+  display: flex;
+  width: 3rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.ey-cal-day-all-day-content {
+  position: relative;
+  flex: 1;
+  padding: 0.25rem;
+}
+
+.ey-cal-day-all-day-more {
+  margin-top: 0.25rem;
 }
 
 .ey-cal-day-all-day-event-bar {
-  /* Event bar styling */
+  position: absolute;
+  right: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ey-cal-day-all-day-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ey-cal-day-current-time-line {

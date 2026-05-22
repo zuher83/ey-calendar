@@ -37,6 +37,24 @@ interface ViewContextValue {
   setScrollPosition: (position: { x: number; y: number }) => void;
 }
 
+interface ViewActions {
+  setViewMode: (mode: ViewMode) => void;
+  setCurrentDate: (date: Date) => void;
+  setDateRange: (start: Date, end: Date) => void;
+  setCellHeight: (height: number) => void;
+  setSelectedDate: (date: Date | undefined) => void;
+  setScrollPosition: (position: { x: number; y: number }) => void;
+}
+
+interface ViewDateRangeValue {
+  startDate: Date;
+  endDate: Date;
+}
+
+interface ViewSelectedDateValue {
+  selectedDate?: Date;
+}
+
 // ============================================================================
 // UTILITAIRES POUR CALCUL DES DATES
 // ============================================================================
@@ -144,7 +162,13 @@ function viewReducer(state: ViewState, action: ViewAction): ViewState {
 // CONTEXT ET PROVIDER
 // ============================================================================
 
-const ViewContext = createContext<ViewContextValue | undefined>(undefined);
+const ViewCurrentViewContext = createContext<ViewMode | undefined>(undefined);
+const ViewCurrentDateContext = createContext<Date | undefined>(undefined);
+const ViewDateRangeContext = createContext<ViewDateRangeValue | undefined>(undefined);
+const ViewCellHeightContext = createContext<number | undefined>(undefined);
+const ViewSelectedDateContext = createContext<ViewSelectedDateValue | undefined>(undefined);
+const ViewScrollPositionContext = createContext<{ x: number; y: number } | undefined>(undefined);
+const ViewActionsContext = createContext<ViewActions | undefined>(undefined);
 
 interface ViewProviderProps {
   children: React.ReactNode;
@@ -171,7 +195,7 @@ export function ViewProvider({
   });
 
   // Actions memoized pour éviter les re-renders
-  const actions = useMemo(
+  const actions = useMemo<ViewActions>(
     () => ({
       setViewMode: (mode: ViewMode) => dispatch({ type: "SET_VIEW_MODE", payload: mode }),
       setCurrentDate: (date: Date) => dispatch({ type: "SET_CURRENT_DATE", payload: date }),
@@ -186,26 +210,118 @@ export function ViewProvider({
     []
   );
 
-  const contextValue = useMemo(
+  const dateRange = useMemo(
     () => ({
-      state,
-      ...actions,
+      startDate: state.startDate,
+      endDate: state.endDate,
     }),
-    [state, actions]
+    [state.startDate, state.endDate]
+  );
+  const selectedDateValue = useMemo(
+    () => ({
+      selectedDate: state.selectedDate,
+    }),
+    [state.selectedDate]
   );
 
-  return <ViewContext.Provider value={contextValue}>{children}</ViewContext.Provider>;
+  return (
+    <ViewActionsContext.Provider value={actions}>
+      <ViewScrollPositionContext.Provider value={state.scrollPosition}>
+        <ViewSelectedDateContext.Provider value={selectedDateValue}>
+          <ViewCellHeightContext.Provider value={state.cellHeight}>
+            <ViewDateRangeContext.Provider value={dateRange}>
+              <ViewCurrentDateContext.Provider value={state.currentDate}>
+                <ViewCurrentViewContext.Provider value={state.currentView}>
+                  {children}
+                </ViewCurrentViewContext.Provider>
+              </ViewCurrentDateContext.Provider>
+            </ViewDateRangeContext.Provider>
+          </ViewCellHeightContext.Provider>
+        </ViewSelectedDateContext.Provider>
+      </ViewScrollPositionContext.Provider>
+    </ViewActionsContext.Provider>
+  );
 }
 
 // ============================================================================
 // HOOK POUR UTILISER LE CONTEXT
 // ============================================================================
 
+function useRequiredContext<T>(context: React.Context<T | undefined>, hookName: string): T {
+  const value = useContext(context);
+  if (value === undefined) {
+    throw new Error(`${hookName} must be used within a ViewProvider`);
+  }
+
+  return value;
+}
+
+export function useViewCurrentView() {
+  return useRequiredContext(ViewCurrentViewContext, "useViewCurrentView");
+}
+
+export function useViewCurrentDate() {
+  return useRequiredContext(ViewCurrentDateContext, "useViewCurrentDate");
+}
+
+export function useViewDateRange() {
+  return useRequiredContext(ViewDateRangeContext, "useViewDateRange");
+}
+
+export function useViewCellHeight() {
+  return useRequiredContext(ViewCellHeightContext, "useViewCellHeight");
+}
+
+export function useViewSelectedDate() {
+  const { selectedDate } = useRequiredContext(ViewSelectedDateContext, "useViewSelectedDate");
+
+  return selectedDate;
+}
+
+export function useViewScrollPosition() {
+  return useRequiredContext(ViewScrollPositionContext, "useViewScrollPosition");
+}
+
+export function useViewActions() {
+  return useRequiredContext(ViewActionsContext, "useViewActions");
+}
+
 export function useView() {
-  const context = useContext(ViewContext);
-  if (context === undefined) {
+  const currentView = useContext(ViewCurrentViewContext);
+  const currentDate = useContext(ViewCurrentDateContext);
+  const dateRange = useContext(ViewDateRangeContext);
+  const cellHeight = useContext(ViewCellHeightContext);
+  const selectedDateValue = useContext(ViewSelectedDateContext);
+  const scrollPosition = useContext(ViewScrollPositionContext);
+  const actions = useContext(ViewActionsContext);
+
+  if (
+    currentView === undefined ||
+    currentDate === undefined ||
+    dateRange === undefined ||
+    cellHeight === undefined ||
+    selectedDateValue === undefined ||
+    scrollPosition === undefined ||
+    actions === undefined
+  ) {
     throw new Error("useView must be used within a ViewProvider");
   }
 
-  return context;
+  const { startDate, endDate } = dateRange;
+  const { selectedDate } = selectedDateValue;
+
+  const contextValue: ViewContextValue = {
+    state: {
+      currentView,
+      currentDate,
+      startDate,
+      endDate,
+      cellHeight,
+      selectedDate,
+      scrollPosition,
+    },
+    ...actions,
+  };
+
+  return contextValue;
 }
