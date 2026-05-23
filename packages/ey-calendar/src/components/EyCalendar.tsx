@@ -9,7 +9,10 @@ import { useViewCurrentView } from "../context/ViewContext";
 import { useContainerHeight } from "../hooks/useContainerHeight";
 import { useEyCalendarClasses } from "../hooks/useEyCalendarClasses";
 import { useEyCalendarLabels } from "../hooks/useEyCalendarLabels";
-import { useEyCalendarView } from "../hooks/useEyCalendarView";
+import {
+  useEyCalendarNavigation,
+  useEyCalendarVisibleEventCount,
+} from "../hooks/useEyCalendarView";
 import type {
   EyCalendarCallbacks,
   EyCalendarClassNames,
@@ -284,13 +287,7 @@ export function EyCalendar(props: EyCalendarProps) {
 function EyCalendarViewRouter() {
   const currentView = useViewCurrentView();
   const { options } = useOptions();
-
-  // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   return (
     <div
@@ -307,18 +304,19 @@ function EyCalendarViewRouter() {
 }
 
 function EyCalendarLiveRegion() {
-  const { currentView, navigation, stats, utils } = useEyCalendarView();
+  const { currentView, navigation, utils } = useEyCalendarNavigation();
+  const visibleEventCount = useEyCalendarVisibleEventCount();
   const { options } = useOptions();
-  const labels = useEyCalendarLabels(options.labels, options.locale);
+  const labels = options.labels;
 
   const announcement = React.useMemo(
     () =>
       labels.ariaViewAnnouncement(
         utils.getViewLabel(currentView),
         navigation.currentLabel,
-        stats.visibleEvents
+        visibleEventCount
       ),
-    [currentView, labels, navigation.currentLabel, stats.visibleEvents, utils]
+    [currentView, labels, navigation.currentLabel, utils, visibleEventCount]
   );
 
   return (

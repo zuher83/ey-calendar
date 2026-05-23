@@ -2,8 +2,7 @@
 // src/components/ey-calendar/components/CalendarToolbar.tsx
 
 import { useOptions } from "../context/OptionsContext";
-import { useEyCalendarLabels, useEyCalendarView } from "../hooks";
-import { useEyCalendarClasses } from "../hooks/useEyCalendarClasses";
+import { useEyCalendarNavigation } from "../hooks/useEyCalendarView";
 import type { ViewMode } from "../types";
 import { DefaultButton } from "./defaults";
 
@@ -48,16 +47,10 @@ export function EyCalendarToolbar({
   showTitle = true,
 }: CalendarToolbarProps) {
   const { options } = useOptions();
-  const { currentView, navigation, actions, utils } = useEyCalendarView();
+  const { currentView, navigation, actions, utils } = useEyCalendarNavigation();
   const showTodayAction = showTodayButton && options.showToday !== false;
-  const labels = useEyCalendarLabels(options.labels, options.locale);
-
-  // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const labels = options.labels;
+  const getClass = options.getClass;
 
   // Get custom Button component if provided
   const Button = options.components?.Button ?? DefaultButton;
@@ -125,6 +118,7 @@ export function EyCalendarToolbar({
         <ViewSelector
           currentView={currentView}
           onViewChange={actions.setView}
+          getViewLabel={utils.getViewLabel}
           getClass={getClass}
           Button={Button}
         />
@@ -139,13 +133,12 @@ export function EyCalendarToolbar({
 interface ViewSelectorProps {
   currentView: ViewMode;
   onViewChange: (view: ViewMode) => void;
+  getViewLabel: (view: ViewMode) => string;
   getClass: (key: import("../types").EyCalendarClassKey) => string;
   Button: React.ComponentType<import("../types").DefaultButtonProps>;
 }
 
-function ViewSelector({ currentView, onViewChange, getClass, Button }: ViewSelectorProps) {
-  const { utils } = useEyCalendarView();
-
+function ViewSelector({ currentView, onViewChange, getViewLabel, getClass, Button }: ViewSelectorProps) {
   const views: ViewMode[] = ["month", "week", "day", "planning"];
 
   return (
@@ -161,7 +154,7 @@ function ViewSelector({ currentView, onViewChange, getClass, Button }: ViewSelec
           data-eycalendar-button-view={view}
           data-active={currentView === view ? "true" : undefined}
         >
-          {utils.getViewLabel(view)}
+          {getViewLabel(view)}
         </Button>
       ))}
     </div>

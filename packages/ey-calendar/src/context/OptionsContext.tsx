@@ -3,7 +3,12 @@
 
 import React, { createContext, useContext, useMemo } from "react";
 import type { Locale } from "date-fns";
+import { DefaultBadge, DefaultButton } from "../components/defaults";
 import { DEFAULT_COMPONENTS } from "../constants/components";
+import {
+  useEyCalendarClasses,
+  type GetEyCalendarClass,
+} from "../hooks/useEyCalendarClasses";
 import { useEyCalendarLabels } from "../hooks/useEyCalendarLabels";
 import type {
   EyCalendarClassNames,
@@ -38,8 +43,15 @@ export interface CalendarOptionsContextValue {
   showWeekNumbers?: boolean;
 }
 
+export interface ResolvedCalendarOptions
+  extends Omit<CalendarOptionsContextValue, "components" | "labels"> {
+  components: Required<EyCalendarComponents>;
+  labels: EyCalendarLabels;
+  getClass: GetEyCalendarClass;
+}
+
 interface OptionsContextValue {
-  options: CalendarOptionsContextValue;
+  options: ResolvedCalendarOptions;
 }
 
 // ============================================================================
@@ -60,6 +72,20 @@ interface OptionsProviderProps {
 export function OptionsProvider({ children, options = {} }: OptionsProviderProps) {
   // Use the hook to automatically select labels based on locale
   const resolvedLabels = useEyCalendarLabels(options.labels, options.locale);
+  const getClass = useEyCalendarClasses({
+    theme: options.theme,
+    unstyled: options.unstyled,
+    classNames: options.classNames,
+  });
+  const resolvedComponents = useMemo<Required<EyCalendarComponents>>(
+    () => ({
+      Button: DefaultButton,
+      Badge: DefaultBadge,
+      ...DEFAULT_COMPONENTS,
+      ...options.components,
+    }),
+    [options.components]
+  );
 
   const contextValue = useMemo(
     () => ({
@@ -77,8 +103,9 @@ export function OptionsProvider({ children, options = {} }: OptionsProviderProps
         theme: options.theme,
         unstyled: options.unstyled ?? false,
         classNames: options.classNames ?? {},
-        components: { ...DEFAULT_COMPONENTS, ...options.components },
+        components: resolvedComponents,
         labels: resolvedLabels,
+        getClass,
         autoHeight: options.autoHeight ?? false,
         detectedHeight: options.detectedHeight,
         showWeekNumbers: options.showWeekNumbers ?? false,
@@ -98,8 +125,9 @@ export function OptionsProvider({ children, options = {} }: OptionsProviderProps
       options.theme,
       options.unstyled,
       options.classNames,
-      options.components,
+      resolvedComponents,
       resolvedLabels,
+      getClass,
       options.autoHeight,
       options.detectedHeight,
       options.showWeekNumbers,

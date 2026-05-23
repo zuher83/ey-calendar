@@ -1,11 +1,9 @@
 // Day column in the weekly view with event layout and conflict resolution
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useCallbacks } from "../../../context/CallbacksContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useViewCellHeight } from "../../../context/ViewContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
-import { useEyCalendarClasses } from "../../../hooks/useEyCalendarClasses";
 import { useTimeSlotInteractions } from "../../../hooks/useTimeSlotInteractions";
 import type { EyCalendarEvent } from "../../../types";
 import { cn } from "../../../utils/cn";
@@ -19,7 +17,6 @@ export interface WeekDayColumnProps {
 }
 
 export function WeekDayColumn({ date, events, hours }: WeekDayColumnProps) {
-  const { callbacks } = useCallbacks();
   const { options } = useOptions();
   const { makeDropTarget } = useDragAndDrop();
   const { triggerTimeSlotClick, triggerTimeSlotDoubleClick } = useTimeSlotInteractions();
@@ -27,12 +24,7 @@ export function WeekDayColumn({ date, events, hours }: WeekDayColumnProps) {
   const cellHeight = useViewCellHeight();
   const creationEnabled = options.enableCreate !== false && options.readonly !== true;
   const slotStepMinutes = options.timeSlots?.stepMinutes ?? options.timeSlots?.duration ?? 15;
-
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   useEffect(() => {
     const element = dayRef.current;

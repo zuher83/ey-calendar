@@ -1,6 +1,7 @@
 // Tests for WeekView component
 import React from "react";
-import { fireEvent, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { EyCalendarProvider } from "../../../src/context/CompositeEyCalendarContext";
 import { WeekView } from "../../../src/components/views/WeekView";
 import { createMockEvent, renderWithProvider } from "../../setup/testUtils";
 
@@ -36,6 +37,74 @@ describe("WeekView", () => {
 
       const weekView = document.querySelector("[data-eycalendar-week-view]");
       expect(weekView).toHaveClass("custom-week-class");
+    });
+
+    it("uses the calendar container width for compact layout", () => {
+      const originalResizeObserver = global.ResizeObserver;
+      const observerCallbacks: ResizeObserverCallback[] = [];
+      const originalInnerWidth = window.innerWidth;
+
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        value: 1200,
+      });
+
+      global.ResizeObserver = jest.fn().mockImplementation((callback: ResizeObserverCallback) => {
+        observerCallbacks.push(callback);
+
+        return {
+          observe: jest.fn(),
+          unobserve: jest.fn(),
+          disconnect: jest.fn(),
+        };
+      }) as unknown as typeof ResizeObserver;
+
+      try {
+        renderWithProvider(<WeekView />, { initialView: "week" });
+
+        const weekView = document.querySelector("[data-eycalendar-week-view]") as HTMLDivElement | null;
+        const weekGrid = document.querySelector("[data-eycalendar-week-grid]") as HTMLDivElement | null;
+
+        expect(weekView).not.toBeNull();
+        expect(weekGrid).not.toBeNull();
+
+        jest.spyOn(weekView as HTMLDivElement, "getBoundingClientRect").mockReturnValue({
+          width: 520,
+          height: 0,
+          top: 0,
+          right: 520,
+          bottom: 0,
+          left: 0,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        } as DOMRect);
+
+        Object.defineProperty(weekGrid as HTMLDivElement, "offsetWidth", {
+          configurable: true,
+          value: 520,
+        });
+        Object.defineProperty(weekGrid as HTMLDivElement, "clientWidth", {
+          configurable: true,
+          value: 500,
+        });
+
+        act(() => {
+          observerCallbacks.forEach((callback) => callback([], {} as ResizeObserver));
+        });
+
+        const headerGrid = document.querySelector(
+          "[data-eycalendar-week-header] [class]"
+        ) as HTMLDivElement | null;
+
+        expect(headerGrid?.style.gridTemplateColumns).toContain("repeat(5");
+      } finally {
+        global.ResizeObserver = originalResizeObserver;
+        Object.defineProperty(window, "innerWidth", {
+          configurable: true,
+          value: originalInnerWidth,
+        });
+      }
     });
 
     it("renders time slots for each day", () => {
@@ -263,6 +332,33 @@ describe("WeekView", () => {
 
       fireEvent.keyDown(headers[1] as HTMLElement, { key: "End" });
       expect(headers[headers.length - 1]).toHaveFocus();
+    });
+
+    it("keeps keyboard navigation scoped to the current calendar instance", () => {
+      render(
+        <>
+          <div data-eycalendar-root="">
+            <EyCalendarProvider initialEvents={[]} initialDate={new Date(2024, 0, 15)} initialView="week">
+              <WeekView />
+            </EyCalendarProvider>
+          </div>
+          <div data-eycalendar-root="">
+            <EyCalendarProvider initialEvents={[]} initialDate={new Date(2024, 0, 22)} initialView="week">
+              <WeekView />
+            </EyCalendarProvider>
+          </div>
+        </>
+      );
+
+      const calendarRoots = document.querySelectorAll("[data-eycalendar-root]");
+      const firstHeaders = within(calendarRoots[0] as HTMLElement).getAllByRole("columnheader");
+      const secondHeaders = within(calendarRoots[1] as HTMLElement).getAllByRole("columnheader");
+
+      (firstHeaders[0] as HTMLElement).focus();
+      fireEvent.keyDown(firstHeaders[0] as HTMLElement, { key: "End" });
+
+      expect(firstHeaders[firstHeaders.length - 1]).toHaveFocus();
+      expect(secondHeaders[secondHeaders.length - 1]).not.toHaveFocus();
     });
 
     it("events are keyboard accessible", () => {

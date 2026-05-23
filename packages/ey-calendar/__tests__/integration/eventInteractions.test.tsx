@@ -75,6 +75,39 @@ describe("Event Interactions Integration", () => {
         );
       });
     });
+
+    it("passes a keyboard event when an event is activated from the keyboard", async () => {
+      const user = userEvent.setup();
+      const onClick = jest.fn();
+
+      const event = createMockEvent({
+        id: "keyboard-clickable",
+        title: "Keyboard Clickable Event",
+        start: new Date(2024, 0, 15, 10, 0),
+        end: new Date(2024, 0, 15, 11, 0),
+      });
+
+      render(
+        <EyCalendar events={[event]} defaultDate={new Date(2024, 0, 15)} onEventClick={onClick} />
+      );
+
+      const eventElement = await screen.findByText("Keyboard Clickable Event");
+      const interactiveEvent = eventElement.closest('[role="button"]') as HTMLElement | null;
+
+      expect(interactiveEvent).not.toBeNull();
+
+      interactiveEvent?.focus();
+      await user.keyboard("{Enter}");
+
+      await waitFor(() => {
+        expect(onClick).toHaveBeenCalledTimes(1);
+      });
+
+      const activationEvent = onClick.mock.calls[0]?.[1];
+
+      expect(activationEvent?.type).toBe("keydown");
+      expect(activationEvent?.key).toBe("Enter");
+    });
   });
 
   describe("Multiple events display", () => {

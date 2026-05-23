@@ -47,8 +47,7 @@ export function EyCalendarProvider({
         >
           <EventsProvider initialEvents={initialEvents}>
             <DragDropProvider>
-              <CallbacksObserver />
-              {children}
+              <CallbacksObserver>{children}</CallbacksObserver>
             </DragDropProvider>
           </EventsProvider>
         </ViewProvider>

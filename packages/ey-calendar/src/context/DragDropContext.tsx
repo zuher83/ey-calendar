@@ -1,7 +1,7 @@
 // Context spécialisé pour le drag & drop
 // Séparé du CalendarContext principal pour améliorer les performances
 
-import React, { createContext, useContext, useMemo, useReducer } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useReducer, useRef } from "react";
 import type { EventPosition } from "../types";
 
 // ============================================================================
@@ -26,6 +26,16 @@ type DragDropAction =
   | { type: "SET_HOVERED_EVENT"; payload: string | undefined }
   | { type: "RESET_DRAG_STATE" };
 
+interface SharedDragSession {
+  eventId?: string;
+  originalStart?: Date;
+  originalEnd?: Date;
+  initialMouseY?: number;
+  initialOffset?: number;
+  isResizing?: boolean;
+  resizeHandle?: "top" | "bottom";
+}
+
 interface DragDropContextValue {
   state: DragDropState;
   // Actions
@@ -36,6 +46,9 @@ interface DragDropContextValue {
   setResizeHandle: (handle: "top" | "bottom" | undefined) => void;
   setHoveredEvent: (eventId: string | undefined) => void;
   resetDragState: () => void;
+  sharedSessionRef: React.MutableRefObject<SharedDragSession>;
+  sharedOffsetsRef: React.MutableRefObject<Map<string, number>>;
+  resetSharedSession: () => void;
 }
 
 // ============================================================================
@@ -96,6 +109,13 @@ export function DragDropProvider({ children }: DragDropProviderProps) {
     resizeHandle: undefined,
     hoveredEventId: undefined,
   });
+  const sharedSessionRef = useRef<SharedDragSession>({});
+  const sharedOffsetsRef = useRef<Map<string, number>>(new Map());
+
+  const resetSharedSession = useCallback(() => {
+    sharedSessionRef.current = {};
+    sharedOffsetsRef.current.clear();
+  }, []);
 
   // Actions memoized pour éviter les re-renders
   const actions = useMemo(
@@ -119,8 +139,11 @@ export function DragDropProvider({ children }: DragDropProviderProps) {
     () => ({
       state,
       ...actions,
+      sharedSessionRef,
+      sharedOffsetsRef,
+      resetSharedSession,
     }),
-    [state, actions]
+    [state, actions, resetSharedSession]
   );
 
   return <DragDropContext.Provider value={contextValue}>{children}</DragDropContext.Provider>;

@@ -157,12 +157,14 @@ export interface EyCalendarColorTheme {
   error?: string;
 }
 
+export type EyCalendarActivationEvent = React.MouseEvent | React.KeyboardEvent;
+
 /**
  * Event callbacks
  */
 export interface EyCalendarCallbacks {
   // Basic events
-  onEventClick?: (event: EyCalendarEvent, e: React.MouseEvent) => void;
+  onEventClick?: (event: EyCalendarEvent, e: EyCalendarActivationEvent) => void;
   onEventDoubleClick?: (event: EyCalendarEvent, e: React.MouseEvent) => void;
   onEventHover?: (event: EyCalendarEvent, e: React.MouseEvent) => void;
 
@@ -180,7 +182,20 @@ export interface EyCalendarCallbacks {
   onTimeSlotClick?: (date: Date, e: React.MouseEvent, resourceId?: string) => void;
   onTimeSlotDoubleClick?: (date: Date, e: React.MouseEvent, resourceId?: string) => void;
   onEventCreate?: (timeSlot: TimeSlot, resourceId?: string) => EyCalendarEvent | void;
-  onEventUpdate?: (eventId: string, updates: Partial<EyCalendarEvent>) => void;
+  /**
+   * Called after an event is updated (drag/drop, resize).
+   * The update is applied optimistically to the internal state before this callback fires.
+   * If the external source of truth (e.g. an API) rejects the change, call `revert()` to
+   * roll back the visual state to the original values without requiring a full events reload.
+   *
+   * @example
+   * ```tsx
+   * onEventUpdate={(eventId, updates, revert) => {
+   *   api.updateEvent(eventId, updates).catch(() => revert());
+   * }}
+   * ```
+   */
+  onEventUpdate?: (eventId: string, updates: Partial<EyCalendarEvent>, revert: () => void) => void;
   onEventDelete?: (eventId: string) => void;
 
   // Navigation

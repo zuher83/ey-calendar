@@ -65,6 +65,7 @@ export type {
   DropTarget,
   PositionCalculation,
   AnimationConfig,
+  EyCalendarActivationEvent,
   EyCalendarOptions,
   EyCalendarColorTheme,
   EyCalendarCallbacks,

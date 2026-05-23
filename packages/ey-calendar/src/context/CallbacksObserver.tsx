@@ -6,7 +6,7 @@
  * Author: Zuher ELMAS de l'équipe Emoory
  */
 
-import { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useCallbacks } from "./CallbacksContext";
 import { useEvents } from "./EventsContext";
 import {
@@ -20,7 +20,11 @@ import {
  * Component that observes state changes and triggers callbacks
  * This component doesn't render anything, it just observes and calls callbacks
  */
-export function CallbacksObserver() {
+interface CallbacksObserverProps {
+  children?: React.ReactNode;
+}
+
+export function CallbacksObserver({ children }: CallbacksObserverProps) {
   const { callbacks } = useCallbacks();
   const {
     state: { events },
@@ -29,7 +33,6 @@ export function CallbacksObserver() {
   const currentView = useViewCurrentView();
   const { startDate, endDate } = useViewDateRange();
   const scrollPosition = useViewScrollPosition();
-  const renderStartTime = performance.now();
 
   // Track previous values to detect changes
   const prevDateRange = useRef<{ start: Date; end: Date } | null>(null);
@@ -115,10 +118,16 @@ export function CallbacksObserver() {
     }
   }, [scrollPosition, callbacks]);
 
-  useEffect(() => {
-    callbacks.onRenderComplete?.(Math.max(0, performance.now() - renderStartTime), events.length);
-  }, [callbacks, currentDate, currentView, endDate, events, renderStartTime, startDate]);
+  const handleRender = useCallback<React.ProfilerOnRenderCallback>(
+    (_id, _phase, actualDuration) => {
+      callbacks.onRenderComplete?.(Math.max(0, actualDuration), events.length);
+    },
+    [callbacks, events.length]
+  );
 
-  // This component doesn't render anything
-  return null;
+  return (
+    <React.Profiler id="ey-calendar" onRender={handleRender}>
+      {children ?? null}
+    </React.Profiler>
+  );
 }

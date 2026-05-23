@@ -6,8 +6,7 @@ import { format, isToday } from "date-fns";
 import { useOptions } from "../../context/OptionsContext";
 import { useViewActions, useViewCellHeight } from "../../context/ViewContext";
 import { useEvents } from "../../context/EventsContext";
-import { useEyCalendarLabels, useTimeCalculations } from "../../hooks";
-import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
+import { useTimeCalculations } from "../../hooks";
 import { cn } from "../../utils/cn";
 import { moveFocusByOffset, moveFocusToBoundary } from "../../utils/focusNavigation";
 import {
@@ -32,17 +31,19 @@ export function WeekView({ className = "" }: WeekViewProps) {
   const { state: eventsState } = useEvents();
   const { options } = useOptions();
   const { viewInfo } = useTimeCalculations();
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [scrollbarGutter, setScrollbarGutter] = useState(0);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const labels = useEyCalendarLabels(options.labels, options.locale);
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
 
-  // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
+    return window.innerWidth >= 640;
   });
+  const [scrollbarGutter, setScrollbarGutter] = useState(0);
+  const weekViewRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const labels = options.labels;
+
+  const getClass = options.getClass;
 
   // Get locale for date formatting
   const locale = options.locale;
@@ -57,20 +58,50 @@ export function WeekView({ className = "" }: WeekViewProps) {
   const compactColumnCount = Math.min(5, weekDays.length);
   const visibleColumnCount = isDesktop ? desktopColumnCount : compactColumnCount;
 
-  // Hook to detect screen size
   useEffect(() => {
-    const checkScreenSize = () => {
-      if (typeof window !== "undefined") {
-        setIsDesktop(window.innerWidth >= 640);
+    const updateLayoutMetrics = () => {
+      const weekViewElement = weekViewRef.current;
+      const scrollContainerElement = scrollContainerRef.current;
+
+      if (weekViewElement) {
+        const containerWidth = weekViewElement.getBoundingClientRect().width;
+
+        if (containerWidth > 0) {
+          setIsDesktop(containerWidth >= 640);
+        } else if (typeof window !== "undefined") {
+          setIsDesktop(window.innerWidth >= 640);
+        }
+      }
+
+      if (scrollContainerElement) {
+        setScrollbarGutter(scrollContainerElement.offsetWidth - scrollContainerElement.clientWidth);
       }
     };
 
-    checkScreenSize();
+    updateLayoutMetrics();
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(() => {
+        updateLayoutMetrics();
+      });
+
+      if (weekViewRef.current) {
+        observer.observe(weekViewRef.current);
+      }
+
+      if (scrollContainerRef.current) {
+        observer.observe(scrollContainerRef.current);
+      }
+
+      return () => {
+        observer.disconnect();
+      };
+    }
 
     if (typeof window !== "undefined") {
-      window.addEventListener("resize", checkScreenSize);
+      window.addEventListener("resize", updateLayoutMetrics);
 
-      return () => window.removeEventListener("resize", checkScreenSize);
+      return () => window.removeEventListener("resize", updateLayoutMetrics);
     }
   }, []);
 
@@ -94,37 +125,6 @@ export function WeekView({ className = "" }: WeekViewProps) {
       });
     }
   }, [cellHeight]);
-
-  useEffect(() => {
-    const updateScrollbarGutter = () => {
-      const element = scrollContainerRef.current;
-      if (!element) return;
-
-      setScrollbarGutter(element.offsetWidth - element.clientWidth);
-    };
-
-    updateScrollbarGutter();
-
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    window.addEventListener("resize", updateScrollbarGutter);
-
-    const observer =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(() => updateScrollbarGutter())
-        : undefined;
-
-    if (observer && scrollContainerRef.current) {
-      observer.observe(scrollContainerRef.current);
-    }
-
-    return () => {
-      window.removeEventListener("resize", updateScrollbarGutter);
-      observer?.disconnect();
-    };
-  }, [isDesktop]);
 
   // Full 24h grid (0h to 23h)
   const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -173,7 +173,11 @@ export function WeekView({ className = "" }: WeekViewProps) {
     : 0;
 
   return (
-    <div className={cn(getClass("weekView"), className)} data-eycalendar-week-view="">
+    <div
+      ref={weekViewRef}
+      className={cn(getClass("weekView"), className)}
+      data-eycalendar-week-view=""
+    >
       {/* Container for alignment synchronization */}
       <div className={getClass("weekViewContainer")}>
         {/* Header with weekday names */}
@@ -309,13 +313,7 @@ function WeekDayHeader({ day, locale, isHidden }: WeekDayHeaderProps) {
   const { setCurrentDate, setViewMode } = useViewActions();
   const { options } = useOptions();
   const todayHighlighted = options.highlightToday !== false && isToday(day);
-
-  // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   /**
    * Handle click on day header (name + number) - navigate to day view (cascade: week → day)
@@ -347,13 +345,13 @@ function WeekDayHeader({ day, locale, isHidden }: WeekDayHeaderProps) {
 
     if (e.key === "Home") {
       e.preventDefault();
-      moveFocusToBoundary("[data-eycalendar-day-header]", "start");
+      moveFocusToBoundary(e.currentTarget, "[data-eycalendar-day-header]", "start");
       return;
     }
 
     if (e.key === "End") {
       e.preventDefault();
-      moveFocusToBoundary("[data-eycalendar-day-header]", "end");
+      moveFocusToBoundary(e.currentTarget, "[data-eycalendar-day-header]", "end");
     }
   };
 

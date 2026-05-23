@@ -8,9 +8,7 @@ import { useCallbacks } from "../../context/CallbacksContext";
 import { useEvents } from "../../context/EventsContext";
 import { useOptions } from "../../context/OptionsContext";
 import { useViewCellHeight, useViewCurrentDate } from "../../context/ViewContext";
-import { useEyCalendarLabels } from "../../hooks";
 import { useDragAndDrop } from "../../hooks/useDragAndDrop";
-import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
 import { useEventKeyboardInteractions } from "../../hooks/useEventKeyboardInteractions";
 import { useTimeSlotInteractions } from "../../hooks/useTimeSlotInteractions";
 import type { EyCalendarEvent } from "../../types";
@@ -45,8 +43,7 @@ export interface DayViewProps {
 export function DayView({ className = "" }: DayViewProps) {
   const { state: eventsState } = useEvents();
   const { options } = useOptions();
-  const { callbacks } = useCallbacks();
-  const labels = useEyCalendarLabels(options.labels, options.locale);
+  const labels = options.labels;
   const timeSlotConfig = options.timeSlots ?? DEFAULT_TIME_SLOT_CONFIG;
   const creationEnabled = options.enableCreate !== false && options.readonly !== true;
   const showToday = options.showToday !== false;
@@ -60,12 +57,7 @@ export function DayView({ className = "" }: DayViewProps) {
   const dayRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   // Full 24h grid according to configured granularity
   const granularity = timeSlotConfig.granularity;
@@ -332,13 +324,7 @@ function CurrentTimeLine() {
   const cellHeight = useViewCellHeight();
   const slotHeight = getSlotHeight(granularity, cellHeight);
   const effectiveSlotHeight = getEffectivePositionHeight(slotHeight);
-
-  // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   const now = new Date();
   const currentHour = now.getHours();
@@ -386,14 +372,8 @@ function DayAllDayEventBar({ event, locale, rowHeight, rowIndex, rowGap }: DayAl
   const { options } = useOptions();
   const { makeDraggable } = useDragAndDrop();
   const eventRef = useRef<HTMLDivElement>(null);
-  const labels = useEyCalendarLabels(options.labels, options.locale);
-
-  // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const labels = options.labels;
+  const getClass = options.getClass;
 
   // Initialize drag & drop
   useEffect(() => {
@@ -423,7 +403,7 @@ function DayAllDayEventBar({ event, locale, rowHeight, rowIndex, rowGap }: DayAl
 
   const handleKeyActivate = useCallback(
     (e: React.KeyboardEvent) => {
-      callbacks?.onEventClick?.(event, e as unknown as React.MouseEvent);
+      callbacks?.onEventClick?.(event, e);
     },
     [callbacks, event]
   );

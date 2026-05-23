@@ -8,12 +8,15 @@ import { useCallbacks } from "../../context/CallbacksContext";
 import { useEvents } from "../../context/EventsContext";
 import { useOptions } from "../../context/OptionsContext";
 import { useViewCurrentDate } from "../../context/ViewContext";
-import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
-import { useEyCalendarComponents } from "../../hooks/useEyCalendarComponents";
 import { useEventKeyboardInteractions } from "../../hooks/useEventKeyboardInteractions";
-import { useEyCalendarLabels } from "../../hooks/useEyCalendarLabels";
 import { useTimeCalculations } from "../../hooks/useTimeCalculations";
-import type { EyCalendarEvent } from "../../types";
+import type {
+  EyCalendarActivationEvent,
+  EyCalendarComponents,
+  EyCalendarEvent,
+  EyCalendarLabels,
+} from "../../types";
+import type { GetEyCalendarClass } from "../../hooks";
 import { cn } from "../../utils/cn";
 import { formatDuration, formatTime } from "../../utils/dateUtils";
 import { getEventsInDateRange, sortEventsByStartTime } from "../../utils/eventUtils";
@@ -46,23 +49,24 @@ function groupEventsByDate(events: EyCalendarEvent[]): EventsByDate[] {
   const today = startOfDay(now);
 
   // Group events by date
-  const eventMap = new Map<string, EyCalendarEvent[]>();
+  const eventMap = new Map<number, { date: Date; events: EyCalendarEvent[] }>();
 
   events.forEach((event) => {
     const eventDate = startOfDay(event.start);
-    const dateKey = format(eventDate, "yyyy-MM-dd");
+    const dateKey = eventDate.getTime();
 
     if (!eventMap.has(dateKey)) {
-      eventMap.set(dateKey, []);
+      eventMap.set(dateKey, {
+        date: eventDate,
+        events: [],
+      });
     }
-    eventMap.get(dateKey)!.push(event);
+    eventMap.get(dateKey)?.events.push(event);
   });
 
   // Convert to array and sort
-  const groupedEvents: EventsByDate[] = Array.from(eventMap.entries())
-    .map(([dateKey, dayEvents]) => {
-      const date = new Date(dateKey);
-
+  const groupedEvents: EventsByDate[] = Array.from(eventMap.values())
+    .map(({ date, events: dayEvents }) => {
       return {
         date,
         events: sortEventsByStartTime(dayEvents),
@@ -92,16 +96,12 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
   const { viewInfo } = useTimeCalculations();
 
   // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   // Get labels, components, and locale from context options
   // Labels are automatically deduced from locale if not provided
-  const labels = useEyCalendarLabels(options.labels, options.locale);
-  const Components = useEyCalendarComponents(options.components);
+  const labels = options.labels;
+  const Components = options.components;
   const locale = options.locale;
 
   // Group events by date
@@ -247,11 +247,11 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
 interface EventCardProps {
   event: EyCalendarEvent;
   isPast: boolean;
-  labels: ReturnType<typeof useEyCalendarLabels>;
-  Components: ReturnType<typeof useEyCalendarComponents>;
-  getClass: ReturnType<typeof useEyCalendarClasses>;
+  labels: EyCalendarLabels;
+  Components: Required<EyCalendarComponents>;
+  getClass: GetEyCalendarClass;
   locale?: Locale;
-  onEventClick?: (event: EyCalendarEvent, e: React.MouseEvent) => void;
+  onEventClick?: (event: EyCalendarEvent, e: EyCalendarActivationEvent) => void;
 }
 
 function EventCard({ event, isPast, labels, Components, getClass, locale, onEventClick }: EventCardProps) {
@@ -267,7 +267,7 @@ function EventCard({ event, isPast, labels, Components, getClass, locale, onEven
 
   const handleKeyActivate = useCallback(
     (e: React.KeyboardEvent) => {
-      onEventClick?.(event, e as unknown as React.MouseEvent);
+      onEventClick?.(event, e);
     },
     [event, onEventClick]
   );

@@ -2,8 +2,6 @@
 // Extracted from EventBar to separate render concerns from drag/resize logic
 
 import { useOptions } from "../../context/OptionsContext";
-import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
-import { useEyCalendarComponents } from "../../hooks/useEyCalendarComponents";
 import type { EventPosition, EyCalendarEvent } from "../../types";
 import { cn } from "../../utils/cn";
 import { formatDuration, formatTime } from "../../utils/dateUtils";
@@ -26,12 +24,8 @@ export function EventBarContent({
   resizePreview,
 }: EventBarContentProps) {
   const { options } = useOptions();
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
-  const Components = useEyCalendarComponents(options.components);
+  const getClass = options.getClass;
+  const Components = options.components;
   const locale = options.locale;
 
   const title = getEventDisplayTitle(event, displayStyle === "compact" ? 15 : 40);

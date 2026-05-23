@@ -214,7 +214,7 @@ Do not rely on internal package paths. If you need the example Tailwind overlay,
 - `onEventDrag`
 - `onEventDrop`
 - `onEventResize`
-- `onEventUpdate`
+- `onEventUpdate` - Generic update callback with optimistic rollback support via `revert()`
 - `onEventDelete`
 - `onEventCreate`
 
@@ -234,21 +234,14 @@ Do not rely on internal package paths. If you need the example Tailwind overlay,
 ```tsx
 <EyCalendar
   events={events}
-  onEventDrop={async (event, dropTarget) => {
-    const updates = {
-      start: dropTarget.dateStart,
-      end: dropTarget.dateEnd,
-    };
-
-    updateLocalEvent(event.id, updates);
-
+  onEventUpdate={async (eventId, updates, revert) => {
     try {
-      await fetch(`/api/events/${event.id}`, {
+      await fetch(`/api/events/${eventId}`, {
         method: "PATCH",
         body: JSON.stringify(updates),
       });
     } catch (error) {
-      revertLocalEvent(event.id);
+      revert();
     }
   }}
   onTimeSlotClick={(date) => {
@@ -286,7 +279,11 @@ interface EyCalendarProps {
   onTimeSlotClick?: (date: Date, e: React.MouseEvent, resourceId?: string) => void;
   onTimeSlotDoubleClick?: (date: Date, e: React.MouseEvent, resourceId?: string) => void;
   onEventCreate?: (timeSlot: TimeSlot, resourceId?: string) => EyCalendarEvent | void;
-  onEventUpdate?: (eventId: string, updates: Partial<EyCalendarEvent>) => void;
+  onEventUpdate?: (
+    eventId: string,
+    updates: Partial<EyCalendarEvent>,
+    revert: () => void
+  ) => void;
   onEventDelete?: (eventId: string) => void;
   onViewChange?: (view: ViewMode, date: Date) => void;
   onDateChange?: (date: Date) => void;

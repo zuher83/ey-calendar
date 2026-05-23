@@ -37,7 +37,6 @@ export const DEFAULT_TIME_SLOT_CONFIG: TimeSlotConfig = {
 export const DEFAULT_OPTIONS: EyCalendarOptions = {
   // Default view
   defaultView: "week",
-  defaultDate: new Date(),
 
   timeSlots: DEFAULT_TIME_SLOT_CONFIG,
 

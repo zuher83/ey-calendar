@@ -80,7 +80,7 @@ export interface EventFieldMapping {
 /**
  * Custom calendar event data
  */
-export interface EyCalendarEventData<T = unknown> {
+export interface EyCalendarEventData<T = any> {
   event: EyCalendarEvent;
   source: "user" | "system" | "external";
   data?: T;

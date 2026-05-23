@@ -5,8 +5,6 @@ import { format } from "date-fns";
 import { useCallbacks } from "../../../context/CallbacksContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
-import { useEyCalendarClasses } from "../../../hooks/useEyCalendarClasses";
-import { useEyCalendarLabels } from "../../../hooks/useEyCalendarLabels";
 import { useEventKeyboardInteractions } from "../../../hooks/useEventKeyboardInteractions";
 import type { EyCalendarEvent } from "../../../types";
 import { getEventColor } from "../../../utils/eventUtils";
@@ -23,13 +21,8 @@ export function MonthEventItem({ event, locale, topOffset, height }: MonthEventI
   const { options } = useOptions();
   const { makeDraggable } = useDragAndDrop();
   const eventRef = useRef<HTMLDivElement>(null);
-  const labels = useEyCalendarLabels(options.labels, options.locale);
-
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const labels = options.labels;
+  const getClass = options.getClass;
 
   const isPastEvent = event.end < new Date();
 
@@ -57,7 +50,7 @@ export function MonthEventItem({ event, locale, topOffset, height }: MonthEventI
 
   const handleKeyActivate = useCallback(
     (e: React.KeyboardEvent) => {
-      callbacks?.onEventClick?.(event, e as unknown as React.MouseEvent);
+      callbacks?.onEventClick?.(event, e);
     },
     [callbacks, event]
   );

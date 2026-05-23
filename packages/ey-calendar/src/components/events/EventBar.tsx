@@ -6,11 +6,8 @@ import { useCallbacks } from "../../context/CallbacksContext";
 import { useOptions } from "../../context/OptionsContext";
 import { useViewCellHeight } from "../../context/ViewContext";
 import { useDragAndDrop } from "../../hooks/useDragAndDrop";
-import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
-import { useEyCalendarComponents } from "../../hooks/useEyCalendarComponents";
-import { useEyCalendarLabels } from "../../hooks/useEyCalendarLabels";
 import { useEventKeyboardInteractions } from "../../hooks/useEventKeyboardInteractions";
-import type { EventPosition, EyCalendarEvent } from "../../types";
+import type { EventPosition, EyCalendarActivationEvent, EyCalendarEvent } from "../../types";
 import { cn } from "../../utils/cn";
 import { formatTime } from "../../utils/dateUtils";
 import { EventBarContent } from "./EventBarContent";
@@ -67,7 +64,7 @@ export interface EventBarProps {
   /**
    * Callback when clicking on the event
    */
-  onClick?: (event: EyCalendarEvent, e: React.MouseEvent) => void;
+  onClick?: (event: EyCalendarEvent, e: EyCalendarActivationEvent) => void;
 
   /**
    * Callback when double-clicking on the event
@@ -115,17 +112,9 @@ export function EventBar({
   const eventRef = useRef<HTMLDivElement>(null);
   const topResizeRef = useRef<HTMLDivElement>(null);
   const bottomResizeRef = useRef<HTMLDivElement>(null);
-  const labels = useEyCalendarLabels(options.labels, options.locale);
-
-  // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
-
-  // Get components from context options (for icons)
-  const Components = useEyCalendarComponents(options.components);
+  const labels = options.labels;
+  const getClass = options.getClass;
+  const Components = options.components;
 
   // Get locale from context for date formatting
   const locale = options.locale;
@@ -308,8 +297,8 @@ export function EventBar({
 
   const handleKeyActivate = useCallback(
     (e: React.KeyboardEvent) => {
-      onClick?.(event, e as unknown as React.MouseEvent);
-      callbacks?.onEventClick?.(event, e as unknown as React.MouseEvent);
+      onClick?.(event, e);
+      callbacks?.onEventClick?.(event, e);
     },
     [callbacks, event, onClick]
   );

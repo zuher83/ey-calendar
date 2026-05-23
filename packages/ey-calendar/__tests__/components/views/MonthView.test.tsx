@@ -1,6 +1,8 @@
 // Tests for MonthView component
 import React from "react";
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { EyCalendar } from "../../../src/components/EyCalendar";
+import { EyCalendarProvider } from "../../../src/context/CompositeEyCalendarContext";
 import { MonthView } from "../../../src/components/views/MonthView";
 import { createMockEvent, renderWithProvider } from "../../setup/testUtils";
 
@@ -337,6 +339,33 @@ describe("MonthView", () => {
       expect(dayTriggers[8]).toHaveFocus();
     });
 
+    it("keeps month grid keyboard navigation scoped to the current calendar instance", () => {
+      render(
+        <>
+          <div data-eycalendar-root="">
+            <EyCalendarProvider initialEvents={[]} initialDate={new Date(2024, 0, 15)} initialView="month">
+              <MonthView />
+            </EyCalendarProvider>
+          </div>
+          <div data-eycalendar-root="">
+            <EyCalendarProvider initialEvents={[]} initialDate={new Date(2024, 1, 15)} initialView="month">
+              <MonthView />
+            </EyCalendarProvider>
+          </div>
+        </>
+      );
+
+      const calendarRoots = document.querySelectorAll("[data-eycalendar-root]");
+      const firstTriggers = within(calendarRoots[0] as HTMLElement).getAllByRole("button");
+      const secondTriggers = within(calendarRoots[1] as HTMLElement).getAllByRole("button");
+
+      (firstTriggers[0] as HTMLElement).focus();
+      fireEvent.keyDown(firstTriggers[0] as HTMLElement, { key: "End" });
+
+      expect(firstTriggers[firstTriggers.length - 1]).toHaveFocus();
+      expect(secondTriggers[secondTriggers.length - 1]).not.toHaveFocus();
+    });
+
     it("events are keyboard accessible", () => {
       const january15 = new Date(2024, 0, 15);
       const event = createMockEvent({
@@ -411,6 +440,92 @@ describe("MonthView", () => {
       dayCells.forEach((cell) => {
         expect(cell).toBeInTheDocument();
       });
+    });
+
+    it("passes only hidden single-day events to onShowMoreClick", () => {
+      const january15 = new Date(2024, 0, 15);
+      const onShowMoreClick = jest.fn();
+
+      const events = [
+        createMockEvent({
+          id: "single-1",
+          title: "Single 1",
+          start: new Date(2024, 0, 15, 9, 0),
+          end: new Date(2024, 0, 15, 10, 0),
+        }),
+        createMockEvent({
+          id: "all-day",
+          title: "All Day",
+          start: new Date(2024, 0, 15, 0, 0),
+          end: new Date(2024, 0, 15, 23, 59),
+          isAllDay: true,
+        }),
+        createMockEvent({
+          id: "single-2",
+          title: "Single 2",
+          start: new Date(2024, 0, 15, 10, 0),
+          end: new Date(2024, 0, 15, 11, 0),
+        }),
+        createMockEvent({
+          id: "multi-day",
+          title: "Multi Day",
+          start: new Date(2024, 0, 15, 0, 0),
+          end: new Date(2024, 0, 17, 23, 59),
+        }),
+        createMockEvent({
+          id: "single-3",
+          title: "Single 3",
+          start: new Date(2024, 0, 15, 11, 0),
+          end: new Date(2024, 0, 15, 12, 0),
+        }),
+        createMockEvent({
+          id: "single-4",
+          title: "Single 4",
+          start: new Date(2024, 0, 15, 12, 0),
+          end: new Date(2024, 0, 15, 13, 0),
+        }),
+        createMockEvent({
+          id: "single-5",
+          title: "Single 5",
+          start: new Date(2024, 0, 15, 13, 0),
+          end: new Date(2024, 0, 15, 14, 0),
+        }),
+      ];
+
+      render(
+        <EyCalendar
+          events={events}
+          defaultDate={january15}
+          defaultView="month"
+          onShowMoreClick={onShowMoreClick}
+        />
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: /show 4 more events/i }));
+
+      expect(onShowMoreClick).toHaveBeenCalledTimes(1);
+
+      const [, hiddenEvents, allEvents] = onShowMoreClick.mock.calls[0] as [
+        Date,
+        Array<{ id: string }>,
+        Array<{ id: string }>,
+      ];
+
+      expect(hiddenEvents.map((event) => event.id)).toEqual([
+        "single-2",
+        "single-3",
+        "single-4",
+        "single-5",
+      ]);
+      expect(allEvents.map((event) => event.id)).toEqual([
+        "all-day",
+        "multi-day",
+        "single-1",
+        "single-2",
+        "single-3",
+        "single-4",
+        "single-5",
+      ]);
     });
   });
 });

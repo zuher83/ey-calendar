@@ -3,16 +3,12 @@
 import { useCallback, useEffect, useRef } from "react";
 import { endOfDay, format } from "date-fns";
 import { useCallbacks } from "../../../context/CallbacksContext";
-import { useEvents } from "../../../context/EventsContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useViewActions } from "../../../context/ViewContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
-import { useEyCalendarClasses } from "../../../hooks/useEyCalendarClasses";
-import { useEyCalendarLabels } from "../../../hooks/useEyCalendarLabels";
 import { useTimeSlotInteractions } from "../../../hooks/useTimeSlotInteractions";
 import type { EyCalendarEvent } from "../../../types";
 import { cn } from "../../../utils/cn";
-import { getEventsForDate } from "../../../utils/eventUtils";
 import { moveFocusByOffset, moveFocusToBoundary } from "../../../utils/focusNavigation";
 import { MobileDot } from "./MobileDot";
 import { MonthEventItem } from "./MonthEventItem";
@@ -23,6 +19,7 @@ export interface MonthDayCellProps {
   isToday: boolean;
   overflowCount: number;
   locale?: import("date-fns").Locale;
+  dayEvents: EyCalendarEvent[];
   singleDayEvents: EyCalendarEvent[];
   maxEventRows: number;
   occupiedRows: number[];
@@ -34,6 +31,7 @@ export function MonthDayCell({
   isToday,
   overflowCount,
   locale,
+  dayEvents,
   singleDayEvents,
   maxEventRows,
   occupiedRows,
@@ -41,21 +39,14 @@ export function MonthDayCell({
   const { setCurrentDate, setViewMode } = useViewActions();
   const { callbacks } = useCallbacks();
   const { options } = useOptions();
-  const { state: eventsState } = useEvents();
-  const { events } = eventsState;
   const { makeDropTarget } = useDragAndDrop();
   const { triggerTimeSlotClick, triggerTimeSlotDoubleClick } = useTimeSlotInteractions();
   const dayRef = useRef<HTMLDivElement>(null);
   const creationEnabled = options.enableCreate !== false && options.readonly !== true;
   const todayHighlighted = options.highlightToday !== false && isToday;
   const daysPerWeek = options.showWeekends !== false ? 7 : 5;
-  const labels = useEyCalendarLabels(options.labels, options.locale);
-
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const labels = options.labels;
+  const getClass = options.getClass;
 
   useEffect(() => {
     const element = dayRef.current;
@@ -75,7 +66,7 @@ export function MonthDayCell({
   const isPast = dateToCompare < today;
 
   const handleDayNumberClick = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent | React.KeyboardEvent) => {
       e.stopPropagation();
       setCurrentDate(date);
       setViewMode("week");
@@ -101,20 +92,25 @@ export function MonthDayCell({
     [date, creationEnabled, triggerTimeSlotDoubleClick]
   );
 
+  const availableRowsCount = Math.max(0, maxEventRows - occupiedRows.length);
+  const hasOverflow = overflowCount > 0;
+  const maxVisibleEvents = hasOverflow ? Math.max(0, availableRowsCount - 1) : availableRowsCount;
+  const visibleSingleDayEvents = singleDayEvents.slice(0, maxVisibleEvents);
+  const hiddenSingleDayEvents = singleDayEvents.slice(maxVisibleEvents);
+
   const handleMoreClick = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent | React.KeyboardEvent) => {
       e.stopPropagation();
-      const dayEvents = getEventsForDate(events, date);
-      callbacks?.onShowMoreClick?.(date, dayEvents.slice(-overflowCount), dayEvents);
+      callbacks?.onShowMoreClick?.(date, hiddenSingleDayEvents, dayEvents);
     },
-    [date, events, overflowCount, callbacks]
+    [callbacks, date, dayEvents, hiddenSingleDayEvents]
   );
 
   const handleDayNumberKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLSpanElement>) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        handleDayNumberClick(e as unknown as React.MouseEvent);
+        handleDayNumberClick(e);
         return;
       }
 
@@ -144,22 +140,17 @@ export function MonthDayCell({
 
       if (e.key === "Home") {
         e.preventDefault();
-        moveFocusToBoundary("[data-eycalendar-month-day-trigger]", "start");
+        moveFocusToBoundary(e.currentTarget, "[data-eycalendar-month-day-trigger]", "start");
         return;
       }
 
       if (e.key === "End") {
         e.preventDefault();
-        moveFocusToBoundary("[data-eycalendar-month-day-trigger]", "end");
+        moveFocusToBoundary(e.currentTarget, "[data-eycalendar-month-day-trigger]", "end");
       }
     },
     [daysPerWeek, handleDayNumberClick]
   );
-
-  const availableRowsCount = Math.max(0, maxEventRows - occupiedRows.length);
-  const hasOverflow = overflowCount > 0;
-  const maxVisibleEvents = hasOverflow ? Math.max(0, availableRowsCount - 1) : availableRowsCount;
-  const visibleSingleDayEvents = singleDayEvents.slice(0, maxVisibleEvents);
 
   const eventRowHeight = 20;
   const eventRowGap = 2;
@@ -248,7 +239,7 @@ export function MonthDayCell({
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              handleMoreClick(e as unknown as React.MouseEvent);
+              handleMoreClick(e);
             }
           }}
           role="button"
@@ -259,7 +250,7 @@ export function MonthDayCell({
         </div>
       )}
 
-      <MobileDot date={date} />
+      <MobileDot dayEvents={dayEvents} />
     </div>
   );
 }

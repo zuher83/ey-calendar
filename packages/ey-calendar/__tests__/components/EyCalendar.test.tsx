@@ -3,6 +3,7 @@ import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EyCalendar } from "../../src/components/EyCalendar";
+import { DEFAULT_OPTIONS } from "../../src/constants";
 import { enCalendar, frCalendar } from "../../src/locales";
 import type { EyCalendarEvent } from "../../src/types";
 import { createMockEvent } from "../setup/testUtils";
@@ -217,6 +218,10 @@ describe("EyCalendar", () => {
       // Verify that June is displayed in toolbar title
       const title = document.querySelector("[data-eycalendar-toolbar-title]");
       expect(title?.textContent).toMatch(/jun/i);
+    });
+
+    it("does not store a module-level default date", () => {
+      expect(DEFAULT_OPTIONS.defaultDate).toBeUndefined();
     });
 
     it("applies custom height", () => {

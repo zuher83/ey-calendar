@@ -5,8 +5,6 @@ import { format } from "date-fns";
 import { useCallbacks } from "../../../context/CallbacksContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
-import { useEyCalendarClasses } from "../../../hooks/useEyCalendarClasses";
-import { useEyCalendarLabels } from "../../../hooks/useEyCalendarLabels";
 import { useEventKeyboardInteractions } from "../../../hooks/useEventKeyboardInteractions";
 import type { EventSegment } from "../../../utils/eventUtils";
 import { cn } from "../../../utils/cn";
@@ -28,16 +26,12 @@ export function WeekAllDayEventBar({ segment, locale, rowHeight, rowGap }: WeekA
   const { options } = useOptions();
   const { makeDraggable } = useDragAndDrop();
   const eventRef = useRef<HTMLDivElement>(null);
-  const labels = useEyCalendarLabels(options.labels, options.locale);
+  const labels = options.labels;
 
   const { event, startCol: _startCol, span, isStart, isEnd, row } = segment;
   void _startCol;
 
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   useEffect(() => {
     const element = eventRef.current;
@@ -63,7 +57,7 @@ export function WeekAllDayEventBar({ segment, locale, rowHeight, rowGap }: WeekA
 
   const handleKeyActivate = useCallback(
     (e: React.KeyboardEvent) => {
-      callbacks?.onEventClick?.(event, e as unknown as React.MouseEvent);
+      callbacks?.onEventClick?.(event, e);
     },
     [callbacks, event]
   );

@@ -45,6 +45,7 @@ export type {
 
 export type {
   // Props & Options
+  EyCalendarActivationEvent,
   EyCalendarOptions,
   EyCalendarColorTheme,
   EyCalendarCallbacks,

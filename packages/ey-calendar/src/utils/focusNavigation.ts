@@ -1,11 +1,20 @@
-export function moveFocusByOffset(currentTarget: HTMLElement, selector: string, offset: number) {
+const CALENDAR_ROOT_SELECTOR = "[data-eycalendar-root]";
+
+function getFocusableElements(currentTarget: HTMLElement, selector: string): HTMLElement[] {
   if (typeof document === "undefined") {
-    return;
+    return [];
   }
 
-  const focusableElements = Array.from(document.querySelectorAll<HTMLElement>(selector)).filter(
+  const rootElement = currentTarget.closest<HTMLElement>(CALENDAR_ROOT_SELECTOR);
+  const focusScope: ParentNode = rootElement ?? document;
+
+  return Array.from(focusScope.querySelectorAll<HTMLElement>(selector)).filter(
     (element) => !element.hasAttribute("disabled") && element.getAttribute("aria-hidden") !== "true"
   );
+}
+
+export function moveFocusByOffset(currentTarget: HTMLElement, selector: string, offset: number) {
+  const focusableElements = getFocusableElements(currentTarget, selector);
 
   const currentIndex = focusableElements.indexOf(currentTarget);
   if (currentIndex === -1) {
@@ -16,14 +25,12 @@ export function moveFocusByOffset(currentTarget: HTMLElement, selector: string, 
   focusableElements[nextIndex]?.focus();
 }
 
-export function moveFocusToBoundary(selector: string, boundary: "start" | "end") {
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  const focusableElements = Array.from(document.querySelectorAll<HTMLElement>(selector)).filter(
-    (element) => !element.hasAttribute("disabled") && element.getAttribute("aria-hidden") !== "true"
-  );
+export function moveFocusToBoundary(
+  currentTarget: HTMLElement,
+  selector: string,
+  boundary: "start" | "end"
+) {
+  const focusableElements = getFocusableElements(currentTarget, selector);
 
   if (focusableElements.length === 0) {
     return;

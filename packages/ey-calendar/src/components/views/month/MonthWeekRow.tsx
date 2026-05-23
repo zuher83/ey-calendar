@@ -1,15 +1,9 @@
 // A week row in the month view: day cells + spanning event bars
 
 import { useOptions } from "../../../context/OptionsContext";
-import { useEyCalendarClasses } from "../../../hooks/useEyCalendarClasses";
 import type { EyCalendarEvent } from "../../../types";
 import { cn } from "../../../utils/cn";
-import {
-  calculateEventSegments,
-  getEventsForDate,
-  getEventsForWeek,
-  isMultiDayEvent,
-} from "../../../utils/eventUtils";
+import { calculateEventSegments, isMultiDayEvent } from "../../../utils/eventUtils";
 import { getWeek, isSameDay, isSameMonth } from "date-fns";
 import { MonthDayCell } from "./MonthDayCell";
 import { MonthEventBar } from "./MonthEventBar";
@@ -18,7 +12,9 @@ const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 export interface MonthWeekRowProps {
   weekDays: Date[];
-  events: EyCalendarEvent[];
+  weekEvents: EyCalendarEvent[];
+  dayEventsByCol: EyCalendarEvent[][];
+  singleDayEventsByCol: EyCalendarEvent[][];
   currentDate: Date;
   locale?: import("date-fns").Locale;
   maxEventRows: number;
@@ -27,7 +23,9 @@ export interface MonthWeekRowProps {
 
 export function MonthWeekRow({
   weekDays,
-  events,
+  weekEvents,
+  dayEventsByCol,
+  singleDayEventsByCol,
   currentDate,
   locale,
   maxEventRows,
@@ -35,30 +33,14 @@ export function MonthWeekRow({
 }: MonthWeekRowProps) {
   const { options } = useOptions();
   const visibleDayCount = weekDays.length;
-
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   const weekNumber = getWeek(weekDays[0], { weekStartsOn: 1, locale });
-
-  const weekStart = weekDays[0];
-  const weekEnd = weekDays[visibleDayCount - 1];
-  const weekEvents = getEventsForWeek(events, weekStart, weekEnd);
 
   const multiDayEvents = weekEvents.filter((e) => isMultiDayEvent(e) || e.isAllDay);
   const segments = calculateEventSegments(multiDayEvents, weekDays, maxEventRows);
 
-  const singleDayEventsByCol: EyCalendarEvent[][] = weekDays.map((day) => {
-    const dayEvents = getEventsForDate(events, day);
-    return dayEvents
-      .filter((e) => !isMultiDayEvent(e) && !e.isAllDay)
-      .sort((a, b) => a.start.getTime() - b.start.getTime());
-  });
-
-  const overflowCounts = weekDays.map((day, dayIndex) => {
+  const overflowCounts = weekDays.map((_, dayIndex) => {
     const segmentsCoveringDay = segments.filter(
       (seg) => seg.startCol <= dayIndex && seg.endCol >= dayIndex
     );
@@ -111,6 +93,7 @@ export function MonthWeekRow({
             isToday={isToday}
             overflowCount={overflowCount}
             locale={locale}
+            dayEvents={dayEventsByCol[colIndex]}
             singleDayEvents={daySingleEvents}
             maxEventRows={maxEventRows}
             occupiedRows={occupiedRows}

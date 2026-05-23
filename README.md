@@ -198,7 +198,7 @@ EyCalendar exposes callbacks for clicks, drag and resize, creation, navigation, 
 - `onEventDrag` — Observe drag preview updates
 - `onEventDrop` — Handle the final drop result via a `DropTarget`
 - `onEventResize` — Handle event resizing
-- `onEventUpdate` — Generic event update handler
+- `onEventUpdate` — Generic event update handler with optimistic `revert()` support
 - `onEventDelete` — Handle event deletion
 - `onEventCreate` — Return a new event from a clicked `TimeSlot`
 

@@ -6,9 +6,25 @@ import { useEvents } from "../../context/EventsContext";
 import { useOptions } from "../../context/OptionsContext";
 import { useViewCurrentDate } from "../../context/ViewContext";
 import { useContainerHeight, useTimeCalculations } from "../../hooks";
-import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
+import type { EyCalendarEvent } from "../../types";
 import { cn } from "../../utils/cn";
+import { isMultiDayEvent } from "../../utils/eventUtils";
 import { MonthWeekRow } from "./month/MonthWeekRow";
+
+interface MonthWeekData {
+  weekDays: Date[];
+  weekEvents: EyCalendarEvent[];
+  dayEventsByCol: EyCalendarEvent[][];
+  singleDayEventsByCol: EyCalendarEvent[][];
+}
+
+function getLocalDayStart(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function getLocalDayKey(date: Date): number {
+  return getLocalDayStart(date).getTime();
+}
 
 function calculateMaxEventRows(gridHeight: number, numberOfWeeks: number): number {
   const eventRowHeight = 20;
@@ -45,12 +61,7 @@ export function MonthView({ className = "" }: MonthViewProps) {
   const { events } = eventsState;
   const { viewInfo } = useTimeCalculations();
 
-  // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   // Get locale for date formatting
   const locale = options.locale;
@@ -58,8 +69,82 @@ export function MonthView({ className = "" }: MonthViewProps) {
   // Calculate days to display
   const monthDays = viewInfo.visibleDays;
 
+  const weeks = useMemo<MonthWeekData[]>(() => {
+    if (monthDays.length === 0) {
+      return [];
+    }
+
+    const visibleStart = getLocalDayStart(monthDays[0]);
+    const visibleEnd = monthDays[monthDays.length - 1];
+    const visibleEndTime = new Date(
+      visibleEnd.getFullYear(),
+      visibleEnd.getMonth(),
+      visibleEnd.getDate(),
+      23,
+      59,
+      59,
+      999
+    ).getTime();
+
+    const dayEventsIndex = new Map<number, EyCalendarEvent[]>(
+      monthDays.map((day) => [getLocalDayKey(day), []])
+    );
+
+    const visibleEvents = events.filter((event) => {
+      const eventStart = event.start.getTime();
+      const eventEnd = event.end.getTime();
+
+      return eventStart <= visibleEndTime && eventEnd >= visibleStart.getTime();
+    });
+
+    visibleEvents.forEach((event) => {
+      const overlapStart = new Date(
+        Math.max(getLocalDayKey(event.start), visibleStart.getTime())
+      );
+      const overlapEnd = new Date(
+        Math.min(getLocalDayKey(event.end), getLocalDayKey(visibleEnd))
+      );
+
+      let currentDay = overlapStart;
+      while (currentDay.getTime() <= overlapEnd.getTime()) {
+        dayEventsIndex.get(getLocalDayKey(currentDay))?.push(event);
+        currentDay = addDays(currentDay, 1);
+      }
+    });
+
+    dayEventsIndex.forEach((dayEvents) => {
+      dayEvents.sort((leftEvent, rightEvent) => leftEvent.start.getTime() - rightEvent.start.getTime());
+    });
+
+    const indexedWeeks: MonthWeekData[] = [];
+
+    for (let index = 0; index < monthDays.length; index += daysPerWeek) {
+      const weekDays = monthDays.slice(index, index + daysPerWeek);
+      const dayEventsByCol = weekDays.map((day) => dayEventsIndex.get(getLocalDayKey(day)) ?? []);
+      const singleDayEventsByCol = dayEventsByCol.map((dayEvents) =>
+        dayEvents.filter((event) => !isMultiDayEvent(event) && !event.isAllDay)
+      );
+      const weekEventsMap = new Map<string, EyCalendarEvent>();
+
+      dayEventsByCol.forEach((dayEvents) => {
+        dayEvents.forEach((event) => {
+          weekEventsMap.set(event.id, event);
+        });
+      });
+
+      indexedWeeks.push({
+        weekDays,
+        weekEvents: Array.from(weekEventsMap.values()),
+        dayEventsByCol,
+        singleDayEventsByCol,
+      });
+    }
+
+    return indexedWeeks;
+  }, [daysPerWeek, events, monthDays]);
+
   // Calculate number of rows dynamically - 7-day weeks or 5-day business weeks
-  const numberOfWeeks = Math.ceil(monthDays.length / daysPerWeek);
+  const numberOfWeeks = weeks.length;
 
   const { containerRef: monthGridRef, height: monthGridHeight } = useContainerHeight({
     enabled: true,
@@ -77,12 +162,6 @@ export function MonthView({ className = "" }: MonthViewProps) {
 
     return format(date, "EEE", { locale });
   });
-
-  // Split visible month days into rows (arrays of 7 or 5 days)
-  const weeks: Date[][] = [];
-  for (let i = 0; i < monthDays.length; i += daysPerWeek) {
-    weeks.push(monthDays.slice(i, i + daysPerWeek));
-  }
 
   return (
     <div className={cn(getClass("monthView"), className)} data-eycalendar-month-view="">
@@ -130,11 +209,13 @@ export function MonthView({ className = "" }: MonthViewProps) {
         data-eycalendar-month-grid=""
         style={{ gridTemplateRows: `repeat(${numberOfWeeks}, minmax(0, 1fr))` }}
       >
-        {weeks.map((weekDays, weekIndex) => (
+        {weeks.map((week, weekIndex) => (
           <MonthWeekRow
             key={`week-${weekIndex}`}
-            weekDays={weekDays}
-            events={events}
+            weekDays={week.weekDays}
+            weekEvents={week.weekEvents}
+            dayEventsByCol={week.dayEventsByCol}
+            singleDayEventsByCol={week.singleDayEventsByCol}
             currentDate={currentDate}
             locale={locale}
             maxEventRows={maxEventRows}

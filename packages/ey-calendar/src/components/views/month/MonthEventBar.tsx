@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import { useCallbacks } from "../../../context/CallbacksContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
-import { useEyCalendarClasses } from "../../../hooks/useEyCalendarClasses";
 import {
   getEventColor,
   getPastEventColors,
@@ -33,12 +32,7 @@ export function MonthEventBar({
   const eventRef = useRef<HTMLDivElement>(null);
 
   const { event, startCol, span, isStart, isEnd, row } = segment;
-
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   const isPastEvent = event.end < new Date();
 
