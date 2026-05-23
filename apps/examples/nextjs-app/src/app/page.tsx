@@ -2,6 +2,7 @@
 
 import { EyCalendar } from "@emoory/ey-calendar";
 import type { EyCalendarEvent } from "@emoory/ey-calendar";
+import { calendarTheme } from "./calendar-theme";
 
 export default function Home() {
   const events: EyCalendarEvent[] = [
@@ -22,9 +23,22 @@ export default function Home() {
   ];
 
   return (
-    <main style={{ padding: "2rem" }}>
-      <h1 style={{ marginBottom: "2rem" }}>📅 EyCalendar - Next.js App Router Example</h1>
-      <EyCalendar events={events} defaultView="week" />
+    <main
+      style={{
+        minHeight: "100vh",
+        padding: "2rem",
+        background: "linear-gradient(180deg, #fff7ed 0%, #fffbeb 100%)",
+      }}
+    >
+      <div style={{ display: "grid", gap: "1rem" }}>
+        <h1 style={{ margin: 0 }}>EyCalendar - Next.js App Router</h1>
+        <p style={{ margin: 0, color: "#7c2d12" }}>
+          Published structure-only CSS with a local theme overlay.
+        </p>
+      </div>
+      <div style={{ marginTop: "2rem" }}>
+        <EyCalendar events={events} defaultView="week" theme={calendarTheme} />
+      </div>
     </main>
   );
 }

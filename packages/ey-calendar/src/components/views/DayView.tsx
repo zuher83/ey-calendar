@@ -1,7 +1,7 @@
 // Daily view with detailed vertical hourly timeline
 // src/components/ey-calendar/components/DayView.tsx
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { format, isToday } from "date-fns";
 import { DEFAULT_TIME_SLOT_CONFIG } from "../../constants";
 import { useCallbacks } from "../../context/CallbacksContext";
@@ -11,6 +11,8 @@ import { useViewCellHeight, useViewCurrentDate } from "../../context/ViewContext
 import { useEyCalendarLabels } from "../../hooks";
 import { useDragAndDrop } from "../../hooks/useDragAndDrop";
 import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
+import { useEventKeyboardInteractions } from "../../hooks/useEventKeyboardInteractions";
+import { useTimeSlotInteractions } from "../../hooks/useTimeSlotInteractions";
 import type { EyCalendarEvent } from "../../types";
 import { cn } from "../../utils/cn";
 import { prepareIntradayEventLayouts } from "../../utils/intradayEventLayout";
@@ -45,12 +47,16 @@ export function DayView({ className = "" }: DayViewProps) {
   const { options } = useOptions();
   const { callbacks } = useCallbacks();
   const labels = useEyCalendarLabels(options.labels, options.locale);
+  const timeSlotConfig = options.timeSlots ?? DEFAULT_TIME_SLOT_CONFIG;
+  const creationEnabled = options.enableCreate !== false && options.readonly !== true;
+  const showToday = options.showToday !== false;
 
   // Extract from states
   const currentDate = useViewCurrentDate();
   const cellHeight = useViewCellHeight();
   const { events } = eventsState;
   const { makeDropTarget } = useDragAndDrop();
+  const { triggerTimeSlotClick, triggerTimeSlotDoubleClick } = useTimeSlotInteractions();
   const dayRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +68,7 @@ export function DayView({ className = "" }: DayViewProps) {
   });
 
   // Full 24h grid according to configured granularity
-  const granularity = DEFAULT_TIME_SLOT_CONFIG.granularity;
+  const granularity = timeSlotConfig.granularity;
   const timeSlots = getTimeSlotsByGranularity(granularity);
   const slotHeight = getSlotHeight(granularity, cellHeight);
 
@@ -71,6 +77,8 @@ export function DayView({ className = "" }: DayViewProps) {
    * Calculates the exact time based on click position
    */
   const handleSlotClick = (e: React.MouseEvent) => {
+    if (!creationEnabled) return;
+
     // Calculate the clicked time based on Y position
     const rect = dayRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -85,7 +93,25 @@ export function DayView({ className = "" }: DayViewProps) {
     const clickedTime = new Date(currentDate);
     clickedTime.setHours(slot.hour, slot.minutes, 0, 0);
 
-    callbacks?.onTimeSlotClick?.(clickedTime, e);
+    triggerTimeSlotClick(clickedTime, e, { slotIndex: slot.index });
+  };
+
+  const handleSlotDoubleClick = (e: React.MouseEvent) => {
+    if (!creationEnabled) return;
+
+    const rect = dayRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const relativeY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
+    const slotIndex = Math.floor(relativeY / slotHeight);
+    const slot = timeSlots[Math.min(slotIndex, timeSlots.length - 1)];
+
+    if (!slot) return;
+
+    const clickedTime = new Date(currentDate);
+    clickedTime.setHours(slot.hour, slot.minutes, 0, 0);
+
+    triggerTimeSlotDoubleClick(clickedTime, e);
   };
 
   // Initialize drop target for the entire day view
@@ -112,7 +138,7 @@ export function DayView({ className = "" }: DayViewProps) {
 
       // Calculate scroll position (current time minus 2 hours for context)
       const scrollHour = Math.max(0, currentHour - 2);
-      const granularity = DEFAULT_TIME_SLOT_CONFIG.granularity;
+      const granularity = timeSlotConfig.granularity;
       const slotHeight = getSlotHeight(granularity, cellHeight);
       const effectiveSlotHeight = getEffectivePositionHeight(slotHeight);
       const slotsPerHour = granularity === "hour" ? 1 : granularity === "half-hour" ? 2 : 4;
@@ -129,11 +155,11 @@ export function DayView({ className = "" }: DayViewProps) {
         });
       });
     }
-  }, [cellHeight]);
+  }, [cellHeight, timeSlotConfig.granularity]);
 
   // Working hours configuration for visual highlighting
-  const workingStartHour = DEFAULT_TIME_SLOT_CONFIG.startHour;
-  const workingEndHour = DEFAULT_TIME_SLOT_CONFIG.endHour;
+  const workingStartHour = timeSlotConfig.startHour;
+  const workingEndHour = timeSlotConfig.endHour;
 
   // Get locale for date formatting
   const locale = options.locale;
@@ -227,6 +253,7 @@ export function DayView({ className = "" }: DayViewProps) {
             ref={dayRef}
             className={getClass("dayMainColumn")}
             onClick={handleSlotClick}
+            onDoubleClick={handleSlotDoubleClick}
             data-eycalendar-day-main=""
             data-drop-target="true"
             data-testid="day-column"
@@ -288,7 +315,7 @@ export function DayView({ className = "" }: DayViewProps) {
             </div>
 
             {/* Current time line if today */}
-            {isToday(currentDate) && <CurrentTimeLine />}
+            {showToday && isToday(currentDate) && <CurrentTimeLine />}
           </div>
         </div>
       </div>
@@ -301,7 +328,7 @@ export function DayView({ className = "" }: DayViewProps) {
  */
 function CurrentTimeLine() {
   const { options } = useOptions();
-  const granularity = DEFAULT_TIME_SLOT_CONFIG.granularity;
+  const granularity = (options.timeSlots ?? DEFAULT_TIME_SLOT_CONFIG).granularity;
   const cellHeight = useViewCellHeight();
   const slotHeight = getSlotHeight(granularity, cellHeight);
   const effectiveSlotHeight = getEffectivePositionHeight(slotHeight);
@@ -359,6 +386,7 @@ function DayAllDayEventBar({ event, locale, rowHeight, rowIndex, rowGap }: DayAl
   const { options } = useOptions();
   const { makeDraggable } = useDragAndDrop();
   const eventRef = useRef<HTMLDivElement>(null);
+  const labels = useEyCalendarLabels(options.labels, options.locale);
 
   // Get class getter from context options
   const getClass = useEyCalendarClasses({
@@ -393,6 +421,15 @@ function DayAllDayEventBar({ event, locale, rowHeight, rowIndex, rowGap }: DayAl
     e.stopPropagation();
   };
 
+  const handleKeyActivate = useCallback(
+    (e: React.KeyboardEvent) => {
+      callbacks?.onEventClick?.(event, e as unknown as React.MouseEvent);
+    },
+    [callbacks, event]
+  );
+
+  const handleKeyDown = useEventKeyboardInteractions(event, handleKeyActivate);
+
   // Row positioning
   const topOffset = rowIndex * (rowHeight + rowGap);
 
@@ -415,6 +452,10 @@ function DayAllDayEventBar({ event, locale, rowHeight, rowIndex, rowGap }: DayAl
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onContextMenu={handleContextMenu}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={labels.ariaEvent(event.title)}
       data-eycalendar-allday-event=""
       data-event-id={event.id}
       style={{

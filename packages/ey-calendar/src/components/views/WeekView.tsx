@@ -1,7 +1,7 @@
 // Weekly view with hourly timeline and precise positioning
 // src/components/ey-calendar/components/views/WeekView.tsx
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { format, isToday } from "date-fns";
 import { useOptions } from "../../context/OptionsContext";
 import { useViewActions, useViewCellHeight } from "../../context/ViewContext";
@@ -9,9 +9,9 @@ import { useEvents } from "../../context/EventsContext";
 import { useEyCalendarLabels, useTimeCalculations } from "../../hooks";
 import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
 import { cn } from "../../utils/cn";
+import { moveFocusByOffset, moveFocusToBoundary } from "../../utils/focusNavigation";
 import {
   calculateEventSegments,
-  getEventsForDate,
   getEventsForWeek,
   isMultiDayEvent,
 } from "../../utils/eventUtils";
@@ -53,6 +53,9 @@ export function WeekView({ className = "" }: WeekViewProps) {
 
   // Get week days
   const weekDays = viewInfo.visibleDays;
+  const desktopColumnCount = weekDays.length;
+  const compactColumnCount = Math.min(5, weekDays.length);
+  const visibleColumnCount = isDesktop ? desktopColumnCount : compactColumnCount;
 
   // Hook to detect screen size
   useEffect(() => {
@@ -126,24 +129,39 @@ export function WeekView({ className = "" }: WeekViewProps) {
   // Full 24h grid (0h to 23h)
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
-  // Separate all-day/multi-day events from timed events
   const weekStart = weekDays[0];
   const weekEnd = weekDays[weekDays.length - 1];
-  const weekEvents = getEventsForWeek(events, weekStart, weekEnd);
-
-  // All-day and multi-day events go in the sticky header
-  const allDayEvents = weekEvents.filter((e) => e.isAllDay || isMultiDayEvent(e));
-
-  // Calculate segments for all-day events (like MonthView)
   const maxAllDayRows = 3;
-  const allDaySegments = calculateEventSegments(allDayEvents, weekDays, maxAllDayRows);
+  const { allDaySegments, timedEventsByDay } = useMemo(() => {
+    const weekEvents = getEventsForWeek(events, weekStart, weekEnd);
+    const spanningEvents: typeof events = [];
+    const groupedTimedEvents = new Map<string, typeof events>();
 
-  // Function to get TIMED events for a day (excluding all-day and multi-day)
-  const getTimedEventsForDay = (date: Date) => {
-    const dayEvents = getEventsForDate(events, date);
+    weekDays.forEach((day) => {
+      groupedTimedEvents.set(format(day, "yyyy-MM-dd"), []);
+    });
 
-    return dayEvents.filter((e) => !e.isAllDay && !isMultiDayEvent(e));
-  };
+    weekEvents.forEach((event) => {
+      if (event.isAllDay || isMultiDayEvent(event)) {
+        spanningEvents.push(event);
+        return;
+      }
+
+      const eventDayKey = format(event.start, "yyyy-MM-dd");
+      groupedTimedEvents.get(eventDayKey)?.push(event);
+    });
+
+    const timedEventsByDay = weekDays.map((day) => {
+      const dayEvents = groupedTimedEvents.get(format(day, "yyyy-MM-dd")) ?? [];
+
+      return [...dayEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
+    });
+
+    return {
+      allDaySegments: calculateEventSegments(spanningEvents, weekDays, maxAllDayRows),
+      timedEventsByDay,
+    };
+  }, [events, maxAllDayRows, weekDays, weekStart, weekEnd]);
 
   // Calculate all-day section height
   const allDayRowHeight = 24;
@@ -163,9 +181,7 @@ export function WeekView({ className = "" }: WeekViewProps) {
           <div
             className={getClass("weekHeaderGrid")}
             style={{
-              gridTemplateColumns: isDesktop
-                ? "48px repeat(7, minmax(0, 1fr))"
-                : "48px repeat(5, minmax(0, 1fr))",
+              gridTemplateColumns: `48px repeat(${visibleColumnCount}, minmax(0, 1fr))`,
               marginInlineEnd: `${scrollbarGutter}px`,
             }}
           >
@@ -178,7 +194,7 @@ export function WeekView({ className = "" }: WeekViewProps) {
                 key={day.toISOString()}
                 day={day}
                 locale={locale}
-                isHidden={!isDesktop && index >= 5}
+                isHidden={!isDesktop && index >= compactColumnCount}
               />
             ))}
           </div>
@@ -195,9 +211,7 @@ export function WeekView({ className = "" }: WeekViewProps) {
             <div
               className={getClass("weekHeaderGrid")}
               style={{
-                gridTemplateColumns: isDesktop
-                  ? "48px repeat(7, minmax(0, 1fr))"
-                  : "48px repeat(5, minmax(0, 1fr))",
+                gridTemplateColumns: `48px repeat(${visibleColumnCount}, minmax(0, 1fr))`,
                 height: allDaySectionHeight,
                 marginInlineEnd: `${scrollbarGutter}px`,
               }}
@@ -213,7 +227,9 @@ export function WeekView({ className = "" }: WeekViewProps) {
                   key={day.toISOString()}
                   className={cn(
                     getClass("weekAllDayColumn"),
-                    !isDesktop && dayIndex >= 5 && getClass("weekAllDayColumnHidden")
+                    !isDesktop &&
+                      dayIndex >= compactColumnCount &&
+                      getClass("weekAllDayColumnHidden")
                   )}
                 >
                   {/* Render segments that START in this column */}
@@ -226,7 +242,7 @@ export function WeekView({ className = "" }: WeekViewProps) {
                         locale={locale}
                         rowHeight={allDayRowHeight}
                         rowGap={allDayRowGap}
-                        totalCols={isDesktop ? 7 : 5}
+                        totalCols={visibleColumnCount}
                       />
                     ))}
                 </div>
@@ -240,9 +256,7 @@ export function WeekView({ className = "" }: WeekViewProps) {
           <div
             className={getClass("weekGridInner")}
             style={{
-              gridTemplateColumns: isDesktop
-                ? "48px repeat(7, minmax(0, 1fr))"
-                : "48px repeat(5, minmax(0, 1fr))",
+              gridTemplateColumns: `48px repeat(${visibleColumnCount}, minmax(0, 1fr))`,
             }}
           >
             {/* Hours column */}
@@ -266,10 +280,10 @@ export function WeekView({ className = "" }: WeekViewProps) {
                 key={day.toISOString()}
                 className={cn(
                   getClass("weekDayColumn"),
-                  !isDesktop && index >= 5 && getClass("weekDayColumnHidden")
+                  !isDesktop && index >= compactColumnCount && getClass("weekDayColumnHidden")
                 )}
               >
-                <WeekDayColumn date={day} events={getTimedEventsForDay(day)} hours={hours} />
+                <WeekDayColumn date={day} events={timedEventsByDay[index] ?? []} hours={hours} />
               </div>
             ))}
           </div>
@@ -294,6 +308,7 @@ interface WeekDayHeaderProps {
 function WeekDayHeader({ day, locale, isHidden }: WeekDayHeaderProps) {
   const { setCurrentDate, setViewMode } = useViewActions();
   const { options } = useOptions();
+  const todayHighlighted = options.highlightToday !== false && isToday(day);
 
   // Get class getter from context options
   const getClass = useEyCalendarClasses({
@@ -311,6 +326,37 @@ function WeekDayHeader({ day, locale, isHidden }: WeekDayHeaderProps) {
     setViewMode("day"); // Cascade: week → day
   };
 
+  const handleDayHeaderKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleDayHeaderClick(e);
+      return;
+    }
+
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      moveFocusByOffset(e.currentTarget, "[data-eycalendar-day-header]", -1);
+      return;
+    }
+
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      moveFocusByOffset(e.currentTarget, "[data-eycalendar-day-header]", 1);
+      return;
+    }
+
+    if (e.key === "Home") {
+      e.preventDefault();
+      moveFocusToBoundary("[data-eycalendar-day-header]", "start");
+      return;
+    }
+
+    if (e.key === "End") {
+      e.preventDefault();
+      moveFocusToBoundary("[data-eycalendar-day-header]", "end");
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -319,24 +365,19 @@ function WeekDayHeader({ day, locale, isHidden }: WeekDayHeaderProps) {
         isHidden && getClass("weekDayColumnHidden")
       )}
       onClick={handleDayHeaderClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          handleDayHeaderClick(e);
-        }
-      }}
+      onKeyDown={handleDayHeaderKeyDown}
       role="columnheader"
       tabIndex={0}
       aria-current={isToday(day) ? "date" : undefined}
       aria-label={format(day, "EEEE d MMMM yyyy", { locale })}
       data-eycalendar-day-header=""
-      data-today={isToday(day) ? "true" : undefined}
+      data-today={todayHighlighted ? "true" : undefined}
     >
       <span className={getClass("weekHeaderDayName")}>{format(day, "EEE", { locale })}</span>
       <span
         className={getClass("weekHeaderDayNumber")}
         data-eycalendar-day-number=""
-        data-today={isToday(day) ? "true" : undefined}
+        data-today={todayHighlighted ? "true" : undefined}
       >
         {format(day, "d", { locale })}
       </span>

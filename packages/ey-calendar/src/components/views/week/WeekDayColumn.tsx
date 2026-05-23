@@ -6,6 +6,7 @@ import { useOptions } from "../../../context/OptionsContext";
 import { useViewCellHeight } from "../../../context/ViewContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
 import { useEyCalendarClasses } from "../../../hooks/useEyCalendarClasses";
+import { useTimeSlotInteractions } from "../../../hooks/useTimeSlotInteractions";
 import type { EyCalendarEvent } from "../../../types";
 import { cn } from "../../../utils/cn";
 import { prepareIntradayEventLayouts } from "../../../utils/intradayEventLayout";
@@ -21,8 +22,11 @@ export function WeekDayColumn({ date, events, hours }: WeekDayColumnProps) {
   const { callbacks } = useCallbacks();
   const { options } = useOptions();
   const { makeDropTarget } = useDragAndDrop();
+  const { triggerTimeSlotClick, triggerTimeSlotDoubleClick } = useTimeSlotInteractions();
   const dayRef = useRef<HTMLDivElement>(null);
   const cellHeight = useViewCellHeight();
+  const creationEnabled = options.enableCreate !== false && options.readonly !== true;
+  const slotStepMinutes = options.timeSlots?.stepMinutes ?? options.timeSlots?.duration ?? 15;
 
   const getClass = useEyCalendarClasses({
     theme: options.theme,
@@ -44,20 +48,42 @@ export function WeekDayColumn({ date, events, hours }: WeekDayColumnProps) {
 
   const handleSlotClick = useCallback(
     (e: React.MouseEvent) => {
+      if (!creationEnabled) return;
+
       const rect = dayRef.current?.getBoundingClientRect();
       if (!rect) return;
 
       const relativeY = e.clientY - rect.top;
       const hourIndex = Math.floor(relativeY / cellHeight);
       const minuteFraction = (relativeY % cellHeight) / cellHeight;
-      const minutes = Math.floor((minuteFraction * 60) / 15) * 15;
+      const minutes = Math.floor((minuteFraction * 60) / slotStepMinutes) * slotStepMinutes;
 
       const clickedTime = new Date(date);
       clickedTime.setHours(hourIndex, minutes, 0, 0);
 
-      callbacks?.onTimeSlotClick?.(clickedTime, e);
+      triggerTimeSlotClick(clickedTime, e);
     },
-    [date, cellHeight, callbacks]
+    [date, cellHeight, creationEnabled, slotStepMinutes, triggerTimeSlotClick]
+  );
+
+  const handleSlotDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!creationEnabled) return;
+
+      const rect = dayRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const relativeY = e.clientY - rect.top;
+      const hourIndex = Math.floor(relativeY / cellHeight);
+      const minuteFraction = (relativeY % cellHeight) / cellHeight;
+      const minutes = Math.floor((minuteFraction * 60) / slotStepMinutes) * slotStepMinutes;
+
+      const clickedTime = new Date(date);
+      clickedTime.setHours(hourIndex, minutes, 0, 0);
+
+      triggerTimeSlotDoubleClick(clickedTime, e);
+    },
+    [date, cellHeight, creationEnabled, slotStepMinutes, triggerTimeSlotDoubleClick]
   );
 
   const eventLayouts = useMemo(
@@ -77,6 +103,7 @@ export function WeekDayColumn({ date, events, hours }: WeekDayColumnProps) {
       ref={dayRef}
       className={getClass("weekDayColumnInner")}
       onClick={handleSlotClick}
+      onDoubleClick={handleSlotDoubleClick}
       data-eycalendar-day-column=""
       data-drop-target="true"
       data-testid="day-column"

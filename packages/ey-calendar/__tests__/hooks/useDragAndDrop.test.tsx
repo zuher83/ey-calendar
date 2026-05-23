@@ -34,6 +34,77 @@ describe("useDragAndDrop", () => {
     dropTargetForElementsMock.mockReturnValue(jest.fn());
   });
 
+  it("does not register a draggable when drag and drop is disabled", () => {
+    const event = createMockEvent({ id: "drag-disabled" });
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <EyCalendarProvider
+        initialEvents={[event]}
+        initialDate={new Date(2024, 0, 15)}
+        options={{ enableDragDrop: false }}
+      >
+        {children}
+      </EyCalendarProvider>
+    );
+
+    const { result } = renderHook(() => useDragAndDrop(), { wrapper });
+    const eventElement = document.createElement("div");
+
+    act(() => {
+      result.current.makeDraggable(eventElement, event);
+    });
+
+    expect(draggableMock).not.toHaveBeenCalled();
+  });
+
+  it("does not register a resize handle when resize is disabled", () => {
+    const event = createMockEvent({ id: "resize-disabled" });
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <EyCalendarProvider
+        initialEvents={[event]}
+        initialDate={new Date(2024, 0, 15)}
+        options={{ enableResize: false }}
+      >
+        {children}
+      </EyCalendarProvider>
+    );
+
+    const { result } = renderHook(() => useDragAndDrop(), { wrapper });
+    const resizeHandle = document.createElement("div");
+
+    act(() => {
+      result.current.makeResizable(resizeHandle, event, "bottom");
+    });
+
+    expect(draggableMock).not.toHaveBeenCalled();
+  });
+
+  it("treats readonly calendar mode as non-interactive", () => {
+    const event = createMockEvent({ id: "readonly-calendar" });
+
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <EyCalendarProvider
+        initialEvents={[event]}
+        initialDate={new Date(2024, 0, 15)}
+        options={{ readonly: true }}
+      >
+        {children}
+      </EyCalendarProvider>
+    );
+
+    const { result } = renderHook(() => useDragAndDrop(), { wrapper });
+
+    expect(result.current.canDragEvent(event)).toBe(false);
+
+    act(() => {
+      result.current.makeDraggable(document.createElement("div"), event);
+      result.current.makeResizable(document.createElement("div"), event, "top");
+    });
+
+    expect(draggableMock).not.toHaveBeenCalled();
+  });
+
   it("preserves the grabbed offset when drop target uses another hook instance", () => {
     const onEventDrop = jest.fn() as jest.MockedFunction<
       NonNullable<EyCalendarCallbacks["onEventDrop"]>

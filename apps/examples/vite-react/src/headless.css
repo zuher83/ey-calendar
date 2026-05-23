@@ -1,0 +1,122 @@
+.vite-shell {
+  display: grid;
+  gap: 2rem;
+  padding: 2rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  min-height: 100vh;
+}
+
+.vite-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.vite-card h1,
+.vite-card h2,
+.vite-card p {
+  margin: 0;
+}
+
+.vite-card p {
+  color: #475569;
+}
+
+.vite-headless-root {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #bfdbfe;
+  border-radius: 18px;
+  background: #eff6ff;
+  color: #0f172a;
+}
+
+.vite-headless-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #bfdbfe;
+}
+
+.vite-headless-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.vite-headless-view-selector {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.vite-headless-button {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #93c5fd;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1d4ed8;
+}
+
+.vite-headless-button-active {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.vite-headless-planning,
+.vite-headless-scroll,
+.vite-headless-content,
+.vite-headless-group {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.vite-headless-group-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.vite-headless-group-title {
+  font-weight: 700;
+}
+
+.vite-headless-group-subtitle {
+  color: #475569;
+}
+
+.vite-headless-event-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.vite-headless-event-card {
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+}
+
+.vite-headless-event-card-content {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.vite-headless-event-time {
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.vite-headless-event-title {
+  font-weight: 700;
+}
+
+.vite-headless-event-description {
+  color: #334155;
+}

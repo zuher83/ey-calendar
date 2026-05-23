@@ -34,6 +34,7 @@ export function MonthWeekRow({
   showWeekNumbers,
 }: MonthWeekRowProps) {
   const { options } = useOptions();
+  const visibleDayCount = weekDays.length;
 
   const getClass = useEyCalendarClasses({
     theme: options.theme,
@@ -44,7 +45,7 @@ export function MonthWeekRow({
   const weekNumber = getWeek(weekDays[0], { weekStartsOn: 1, locale });
 
   const weekStart = weekDays[0];
-  const weekEnd = weekDays[6];
+  const weekEnd = weekDays[visibleDayCount - 1];
   const weekEvents = getEventsForWeek(events, weekStart, weekEnd);
 
   const multiDayEvents = weekEvents.filter((e) => isMultiDayEvent(e) || e.isAllDay);
@@ -78,15 +79,16 @@ export function MonthWeekRow({
   return (
     <div
       className={cn(getClass("monthWeekRow"))}
+      role="row"
       data-eycalendar-week-row=""
       style={{
         gridTemplateColumns: showWeekNumbers
-          ? "auto repeat(7, minmax(0, 1fr))"
-          : "repeat(7, minmax(0, 1fr))",
+          ? `auto repeat(${visibleDayCount}, minmax(0, 1fr))`
+          : `repeat(${visibleDayCount}, minmax(0, 1fr))`,
       }}
     >
       {showWeekNumbers && (
-        <div className={getClass("monthWeekNumberCell")} data-eycalendar-week-number="">
+        <div className={getClass("monthWeekNumberCell")} role="rowheader" data-eycalendar-week-number="">
           <span className={getClass("monthWeekNumber")}>{weekNumber}</span>
         </div>
       )}
@@ -147,6 +149,7 @@ export function MonthWeekRow({
           <MonthEventBar
             key={`${segment.event.id}-${segment.startCol}`}
             segment={segment}
+            totalColumns={visibleDayCount}
             segmentStartOffsetDays={segmentStartOffsetDays}
             visibleSegmentStartDate={visibleSegmentStartDay}
             locale={locale}

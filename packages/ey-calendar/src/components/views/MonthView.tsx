@@ -37,6 +37,8 @@ export interface MonthViewProps {
 export function MonthView({ className = "" }: MonthViewProps) {
   const { state: eventsState } = useEvents();
   const { options } = useOptions();
+  const showWeekends = options.showWeekends !== false;
+  const daysPerWeek = showWeekends ? 7 : 5;
 
   // Extract from states
   const currentDate = useViewCurrentDate();
@@ -56,8 +58,8 @@ export function MonthView({ className = "" }: MonthViewProps) {
   // Calculate days to display
   const monthDays = viewInfo.visibleDays;
 
-  // Calculate number of weeks (rows) dynamically - can be 4, 5, or 6 weeks
-  const numberOfWeeks = Math.ceil(monthDays.length / 7);
+  // Calculate number of rows dynamically - 7-day weeks or 5-day business weeks
+  const numberOfWeeks = Math.ceil(monthDays.length / daysPerWeek);
 
   const { containerRef: monthGridRef, height: monthGridHeight } = useContainerHeight({
     enabled: true,
@@ -70,16 +72,16 @@ export function MonthView({ className = "" }: MonthViewProps) {
 
   // Generate weekday headers starting from Monday (weekStartsOn: 1)
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1, locale });
-  const weekDayHeaders = Array.from({ length: 7 }, (_, i) => {
+  const weekDayHeaders = Array.from({ length: daysPerWeek }, (_, i) => {
     const date = addDays(weekStart, i);
 
     return format(date, "EEE", { locale });
   });
 
-  // Split monthDays into weeks (arrays of 7 days)
+  // Split visible month days into rows (arrays of 7 or 5 days)
   const weeks: Date[][] = [];
-  for (let i = 0; i < monthDays.length; i += 7) {
-    weeks.push(monthDays.slice(i, i + 7));
+  for (let i = 0; i < monthDays.length; i += daysPerWeek) {
+    weeks.push(monthDays.slice(i, i + daysPerWeek));
   }
 
   return (
@@ -90,8 +92,8 @@ export function MonthView({ className = "" }: MonthViewProps) {
           className={getClass("monthHeaderGrid")}
           style={{
             gridTemplateColumns: options.showWeekNumbers
-              ? "auto repeat(7, minmax(0, 1fr))"
-              : "repeat(7, minmax(0, 1fr))",
+              ? `auto repeat(${daysPerWeek}, minmax(0, 1fr))`
+              : `repeat(${daysPerWeek}, minmax(0, 1fr))`,
           }}
         >
           {/* Week number header placeholder */}
@@ -106,8 +108,9 @@ export function MonthView({ className = "" }: MonthViewProps) {
               key={day}
               className={cn(
                 getClass("monthHeaderDay"),
-                index < 6 && getClass("monthHeaderDayBorder")
+                index < weekDayHeaders.length - 1 && getClass("monthHeaderDayBorder")
               )}
+              role="columnheader"
               data-eycalendar-weekday-header=""
             >
               <span className={getClass("monthHeaderDayText")}>{day}</span>
@@ -120,6 +123,10 @@ export function MonthView({ className = "" }: MonthViewProps) {
       <div
         ref={monthGridRef}
         className={getClass("monthGrid")}
+        role="grid"
+        aria-label={format(currentDate, "MMMM yyyy", { locale })}
+        aria-colcount={daysPerWeek}
+        aria-rowcount={numberOfWeeks}
         data-eycalendar-month-grid=""
         style={{ gridTemplateRows: `repeat(${numberOfWeeks}, minmax(0, 1fr))` }}
       >

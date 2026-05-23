@@ -8,6 +8,8 @@ import { useOptions } from "../context/OptionsContext";
 import { useViewCurrentView } from "../context/ViewContext";
 import { useContainerHeight } from "../hooks/useContainerHeight";
 import { useEyCalendarClasses } from "../hooks/useEyCalendarClasses";
+import { useEyCalendarLabels } from "../hooks/useEyCalendarLabels";
+import { useEyCalendarView } from "../hooks/useEyCalendarView";
 import type {
   EyCalendarCallbacks,
   EyCalendarClassNames,
@@ -24,10 +26,22 @@ import MonthView from "./views/MonthView";
 import PlanningView from "./views/PlanningView";
 import WeekView from "./views/WeekView";
 
+const visuallyHiddenStyle: React.CSSProperties = {
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  padding: 0,
+  margin: "-1px",
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  border: 0,
+};
+
 /**
  * Interface for Calendar component props
  */
-export interface EyCalendarProps extends EyCalendarCallbacks {
+export interface EyCalendarProps extends EyCalendarOptions, EyCalendarCallbacks {
   /**
    * Additional CSS class for the container
    */
@@ -156,33 +170,17 @@ export function EyCalendar(props: EyCalendarProps) {
     onViewChange,
     onDateChange,
     onDateRangeChange,
-    onResourceSelect,
-    onResourceAvailabilityCheck,
-    onConflictDetected,
-    onConflictResolved,
     onRenderComplete,
     onScrollChange,
     onShowMoreClick,
+    ...optionProps
   } = props;
 
   // Merge user options with defaults (single source of truth)
-  // Props-level options (showToolbar, height, etc.) can override both defaults and options object
+  // Remaining non-callback props are treated as top-level option overrides.
   const mergedOptions = mergeCalendarOptions(DEFAULT_OPTIONS, {
-    // Options object from props
     ...userOptions,
-    // Individual props override everything (backward compatibility)
-    ...(props.showToolbar !== undefined && { showToolbar: props.showToolbar }),
-    ...(props.height !== undefined && { height: props.height }),
-    ...(props.width !== undefined && { width: props.width }),
-    ...(props.defaultView !== undefined && { defaultView: props.defaultView }),
-    ...(props.defaultDate !== undefined && { defaultDate: props.defaultDate }),
-    ...(props.cellHeight !== undefined && { cellHeight: props.cellHeight }),
-    ...(props.autoHeight !== undefined && { autoHeight: props.autoHeight }),
-    ...(props.theme !== undefined && { theme: props.theme }),
-    ...(props.unstyled !== undefined && { unstyled: props.unstyled }),
-    ...(props.classNames !== undefined && { classNames: props.classNames }),
-    ...(props.components !== undefined && { components: props.components }),
-    ...(props.isolateZIndex !== undefined && { isolateZIndex: props.isolateZIndex }),
+    ...optionProps,
   });
 
   // Extract final values from merged options
@@ -201,6 +199,7 @@ export function EyCalendar(props: EyCalendarProps) {
   } = mergedOptions;
   // Initialize the class getter with headless options
   const getClass = useEyCalendarClasses({ theme, unstyled, classNames });
+  const labels = useEyCalendarLabels(mergedOptions.labels, mergedOptions.locale);
 
   // Auto-height detection - detect the height of the calendar container
   const { containerRef, height: detectedContainerHeight } = useContainerHeight({
@@ -231,10 +230,6 @@ export function EyCalendar(props: EyCalendarProps) {
     onViewChange,
     onDateChange,
     onDateRangeChange,
-    onResourceSelect,
-    onResourceAvailabilityCheck,
-    onConflictDetected,
-    onConflictResolved,
     onRenderComplete,
     onScrollChange,
     onShowMoreClick,
@@ -268,11 +263,14 @@ export function EyCalendar(props: EyCalendarProps) {
         ref={containerRef}
         className={rootClassName}
         style={containerStyle}
+        role="region"
+        aria-label={labels.ariaCalendar}
         data-eycalendar-root=""
         data-theme={dataTheme}
         data-isolate-zindex={isolateZIndex}
         data-testid="calendar-container"
       >
+        <EyCalendarLiveRegion />
         {showToolbar && <EyCalendarToolbar />}
         <EyCalendarViewRouter />
       </div>
@@ -304,6 +302,34 @@ function EyCalendarViewRouter() {
       {currentView === "week" && <WeekView />}
       {currentView === "day" && <DayView />}
       {currentView === "planning" && <PlanningView />}
+    </div>
+  );
+}
+
+function EyCalendarLiveRegion() {
+  const { currentView, navigation, stats, utils } = useEyCalendarView();
+  const { options } = useOptions();
+  const labels = useEyCalendarLabels(options.labels, options.locale);
+
+  const announcement = React.useMemo(
+    () =>
+      labels.ariaViewAnnouncement(
+        utils.getViewLabel(currentView),
+        navigation.currentLabel,
+        stats.visibleEvents
+      ),
+    [currentView, labels, navigation.currentLabel, stats.visibleEvents, utils]
+  );
+
+  return (
+    <div
+      style={visuallyHiddenStyle}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      data-eycalendar-live-region=""
+    >
+      {announcement}
     </div>
   );
 }

@@ -8,6 +8,8 @@ import { useViewCellHeight } from "../../context/ViewContext";
 import { useDragAndDrop } from "../../hooks/useDragAndDrop";
 import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
 import { useEyCalendarComponents } from "../../hooks/useEyCalendarComponents";
+import { useEyCalendarLabels } from "../../hooks/useEyCalendarLabels";
+import { useEventKeyboardInteractions } from "../../hooks/useEventKeyboardInteractions";
 import type { EventPosition, EyCalendarEvent } from "../../types";
 import { cn } from "../../utils/cn";
 import { formatTime } from "../../utils/dateUtils";
@@ -113,6 +115,7 @@ export function EventBar({
   const eventRef = useRef<HTMLDivElement>(null);
   const topResizeRef = useRef<HTMLDivElement>(null);
   const bottomResizeRef = useRef<HTMLDivElement>(null);
+  const labels = useEyCalendarLabels(options.labels, options.locale);
 
   // Get class getter from context options
   const getClass = useEyCalendarClasses({
@@ -132,6 +135,12 @@ export function EventBar({
   });
 
   const [isHovered, setIsHovered] = useState(false);
+  const recurringResizeAllowed = !event.isRecurring || event.custom?.allowDragRecurring === true;
+  const resizeAllowed =
+    options.enableResize !== false &&
+    options.readonly !== true &&
+    !event.custom?.readOnly &&
+    recurringResizeAllowed;
 
   // Initialize drag & drop
   useEffect(() => {
@@ -209,8 +218,14 @@ export function EventBar({
   }, [compact, viewMode, position]);
 
   const tempPosition = useMemo(
-    () => computeResizePreviewPosition(resizePreview, position, cellHeight),
-    [resizePreview, position, cellHeight]
+    () =>
+      computeResizePreviewPosition(
+        resizePreview,
+        position,
+        cellHeight,
+        options.timeSlots?.granularity
+      ),
+    [resizePreview, position, cellHeight, options.timeSlots?.granularity]
   );
 
   // Check if event is in the past (ended before current date)
@@ -291,16 +306,15 @@ export function EventBar({
     setIsHovered(false);
   }, []);
 
-  const handleKeyDown = useCallback(
+  const handleKeyActivate = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onClick?.(event, e as unknown as React.MouseEvent);
-        callbacks?.onEventClick?.(event, e as unknown as React.MouseEvent);
-      }
+      onClick?.(event, e as unknown as React.MouseEvent);
+      callbacks?.onEventClick?.(event, e as unknown as React.MouseEvent);
     },
-    [event, onClick, callbacks]
+    [callbacks, event, onClick]
   );
+
+  const handleKeyDown = useEventKeyboardInteractions(event, handleKeyActivate);
 
   const eventClasses = cn(getClass("eventBar"), className);
 
@@ -320,7 +334,7 @@ export function EventBar({
       title={`${event.title}\n${formatTime(event.start, locale)} - ${formatTime(event.end, locale)}\n${event.description || ""}`}
       role="button"
       tabIndex={0}
-      aria-label={`Event: ${event.title}`}
+      aria-label={labels.ariaEvent(event.title)}
       aria-selected={isSelected}
       data-eycalendar-event=""
       data-event-id={event.id}
@@ -343,7 +357,7 @@ export function EventBar({
 
       {/* Resize indicators (full view only) */}
       {/* Resize handles - show for week/day views, always show bottom handle for small events */}
-      {(viewMode === "week" || viewMode === "day") && position && (
+      {(viewMode === "week" || viewMode === "day") && position && resizeAllowed && (
         <>
           {/* Top handle only for events tall enough */}
           {position.height > 40 && (

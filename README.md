@@ -22,16 +22,16 @@ A React calendar component designed for building scheduling applications. Headle
 
 ## Philosophy
 
-EyCalendar is built on three core principles:
+EyCalendar is built on three practical principles:
 
-### 1. Callback-Driven (Uncontrolled Component)
+### 1. Callback-Driven Integration
 
-The calendar **does not manage your data**. It renders events and delegates all interactions back to you via callbacks. This means:
+EyCalendar renders your events and emits callbacks for user interactions. Keep your source of truth in local state, Redux, Zustand, or your backend, and react to drag, resize, creation, deletion, and navigation with your own business logic.
 
 - ✅ Integrate with **any state management** (Redux, Zustand, Context, etc.)
 - ✅ Connect to **any backend** (REST, GraphQL, WebSockets, etc.)
-- ✅ Implement **your own business logic** (permissions, validation, optimistic updates, etc.)
-- ✅ Full control over **when and how** events are updated
+- ✅ Implement **your own permissions, validation, and optimistic updates**
+- ✅ Use convenience callbacks like `onEventCreate` when you want to return a new event directly
 
 ### 2. Headless Styling
 
@@ -76,26 +76,32 @@ function App() {
     <EyCalendar
       events={events}
       defaultView="week"
-      // Callback-driven: YOU control what happens
       onEventClick={(event) => {
         console.log("Clicked:", event);
-        // Open modal, navigate, etc.
       }}
-      onEventDrop={(eventId, newStart, newEnd) => {
-        // Update your state or call your API
+      onEventDrop={(event, dropTarget) => {
         setEvents((prev) =>
-          prev.map((e) => (e.id === eventId ? { ...e, start: newStart, end: newEnd } : e))
+          prev.map((currentEvent) =>
+            currentEvent.id === event.id
+              ? {
+                  ...currentEvent,
+                  start: dropTarget.dateStart,
+                  end: dropTarget.dateEnd,
+                }
+              : currentEvent
+          )
         );
       }}
-      onSlotClick={(date) => {
-        // Create new event
-        const newEvent = {
-          id: crypto.randomUUID(),
-          title: "New Event",
-          start: date,
-          end: new Date(date.getTime() + 3600000),
-        };
-        setEvents((prev) => [...prev, newEvent]);
+      onTimeSlotClick={(date) => {
+        setEvents((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            title: "New Event",
+            start: date,
+            end: new Date(date.getTime() + 60 * 60 * 1000),
+          },
+        ]);
       }}
     />
   );
@@ -140,20 +146,12 @@ Override theme variables on `.ey-cal-root`:
 
 ### Headless mode (Tailwind, CSS Modules, etc.)
 
-Inject custom CSS classes directly via `options.theme`:
+Copy the example Tailwind overlay from [apps/examples/themes/tailwind.ts](./apps/examples/themes/tailwind.ts) into your app and pass it to the calendar:
 
 ```tsx
-import { tailwindTheme } from "@emoory/ey-calendar/themes/tailwind";
+import { tailwindTheme } from "./themes/tailwind";
 
-// Or copy from: apps/examples/themes/tailwind.ts
-
-<EyCalendar
-  events={events}
-  options={{
-    unstyled: false, // Keep structure, inject custom theme
-    theme: tailwindTheme, // Use pre-made Tailwind theme
-  }}
-/>;
+<EyCalendar events={events} theme={tailwindTheme} />;
 ```
 
 **Advanced: Override specific classes**
@@ -163,14 +161,11 @@ import { tailwindTheme } from "./themes/tailwind";
 
 <EyCalendar
   events={events}
-  options={{
-    theme: {
-      ...tailwindTheme,
-      // Override specific classes
-      root: "bg-white dark:bg-gray-800 rounded-xl shadow-2xl",
-      toolbar: "bg-gradient-to-r from-indigo-500 to-purple-600 text-white",
-      eventBar: "rounded-lg shadow-lg hover:scale-105 transition-transform",
-    },
+  theme={{
+    ...tailwindTheme,
+    root: "bg-white dark:bg-gray-800 rounded-xl shadow-2xl",
+    toolbar: "bg-gradient-to-r from-indigo-500 to-purple-600 text-white",
+    eventBar: "rounded-lg shadow-lg hover:scale-105 transition-transform",
   }}
 />;
 ```
@@ -180,14 +175,11 @@ import { tailwindTheme } from "./themes/tailwind";
 ```tsx
 <EyCalendar
   events={events}
-  options={{
-    unstyled: true, // Disable all default styles
-    theme: {
-      root: "my-calendar",
-      toolbar: "my-toolbar",
-      weekView: "my-week-view",
-      // ... map all 100+ class keys to your CSS
-    },
+  unstyled
+  theme={{
+    root: "my-calendar",
+    toolbar: "my-toolbar",
+    weekView: "my-week-view",
   }}
 />
 ```
@@ -196,25 +188,30 @@ import { tailwindTheme } from "./themes/tailwind";
 
 ## Callback-Driven Integration
 
-EyCalendar provides **14+ callbacks** for complete control over interactions:
+EyCalendar exposes callbacks for clicks, drag and resize, creation, navigation, and render lifecycle.
 
 ### Event Interactions
 
 - `onEventClick` — Handle event clicks (open modal, navigate, etc.)
 - `onEventDoubleClick` — Handle double-clicks (quick edit, etc.)
-- `onEventDrop` — Handle drag & drop (update backend, optimistic UI)
+- `onEventHover` — React to hover interactions
+- `onEventDrag` — Observe drag preview updates
+- `onEventDrop` — Handle the final drop result via a `DropTarget`
 - `onEventResize` — Handle event resizing
 - `onEventUpdate` — Generic event update handler
 - `onEventDelete` — Handle event deletion
-- `onEventCreate` — Handle new event creation
+- `onEventCreate` — Return a new event from a clicked `TimeSlot`
 
-### Navigation & Selection
+### Time Slots & Navigation
 
 - `onDateChange` — Track current date changes
-- `onViewChange` — Track view mode changes
-- `onSlotClick` — Handle empty slot clicks (create event)
-- `onCellClick` — Handle cell clicks
-- `onDateClick` — Handle date header clicks
+- `onViewChange` — Track view mode changes with the active date
+- `onDateRangeChange` — Track the visible date range
+- `onTimeSlotClick` — Handle empty slot clicks
+- `onTimeSlotDoubleClick` — Handle empty slot double-clicks
+- `onShowMoreClick` — Handle month overflow interactions
+- `onRenderComplete` — Observe render timing and event count
+- `onScrollChange` — Observe scroll position changes
 
 ### Backend Integration Examples
 
@@ -223,18 +220,21 @@ EyCalendar provides **14+ callbacks** for complete control over interactions:
 ```tsx
 <EyCalendar
   events={events}
-  onEventDrop={async (eventId, newStart, newEnd) => {
-    // Optimistic update
-    updateLocalEvent(eventId, newStart, newEnd);
+  onEventDrop={async (event, dropTarget) => {
+    const updates = {
+      start: dropTarget.dateStart,
+      end: dropTarget.dateEnd,
+    };
+
+    updateLocalEvent(event.id, updates);
 
     try {
-      await fetch(`/api/events/${eventId}`, {
+      await fetch(`/api/events/${event.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ start: newStart, end: newEnd }),
+        body: JSON.stringify(updates),
       });
     } catch (error) {
-      // Rollback on error
-      revertLocalEvent(eventId);
+      revertLocalEvent(event.id);
     }
   }}
 />
@@ -245,9 +245,13 @@ EyCalendar provides **14+ callbacks** for complete control over interactions:
 ```tsx
 <EyCalendar
   events={events}
-  onEventDrop={(eventId, newStart, newEnd) => {
+  onEventDrop={(event, dropTarget) => {
     updateEvent({
-      variables: { id: eventId, start: newStart, end: newEnd },
+      variables: {
+        id: event.id,
+        start: dropTarget.dateStart,
+        end: dropTarget.dateEnd,
+      },
       optimisticResponse: { ... },
     });
   }}
@@ -259,21 +263,22 @@ EyCalendar provides **14+ callbacks** for complete control over interactions:
 ```tsx
 <EyCalendar
   events={events}
-  onEventDrop={(eventId, newStart, newEnd) => {
-    dispatch(moveEvent({ id: eventId, start: newStart, end: newEnd }));
+  onEventDrop={(event, dropTarget) => {
+    dispatch(
+      moveEvent({
+        id: event.id,
+        start: dropTarget.dateStart,
+        end: dropTarget.dateEnd,
+      })
+    );
   }}
-  onSlotClick={(date) => {
+  onTimeSlotClick={(date) => {
     dispatch(openCreateEventModal(date));
   }}
 />
-}
 ```
 
-### Headless mode
-
-For complete styling control (Tailwind, CSS-in-JS, etc.):
-
-Why Callback-Driven?
+### Why Callback-Driven?
 
 Traditional calendar libraries often:
 
@@ -283,7 +288,7 @@ Traditional calendar libraries often:
 
 **EyCalendar is different:**
 
-- ✅ **You own the data** — Events are just props
+- ✅ **You can keep the source of truth outside the calendar**
 - ✅ **You control the logic** — Every interaction is a callback
 - ✅ **Works with anything** — REST, GraphQL, WebSockets, local state
 - ✅ **Simple integration** — Just handle the callbacks you need
@@ -301,8 +306,7 @@ This makes EyCalendar perfect for:
 
 ```tsx
 interface EyCalendarProps {
-  // Data (YOU control this)
-  events: EyCalendarEvent[];
+  events?: EyCalendarEvent[];
 
   // View configuration
   defaultView?: "day" | "week" | "month" | "planning";
@@ -310,36 +314,29 @@ interface EyCalendarProps {
   height?: string | number;
   width?: string | number;
 
-  // Callbacks (YOU implement the logic)
-  onEventClick?: (event: EyCalendarEvent) => void;
-  onEventDrop?: (eventId: string, newStart: Date, newEnd: Date) => void;
-  onEventResize?: (eventId: string, newStart: Date, newEnd: Date) => void;
-  onSlotClick?: (date: Date) => void;
+  // Styling
+  theme?: Partial<Record<EyCalendarClassKey, string>>;
+  unstyled?: boolean;
+  classNames?: EyCalendarClassNames;
+
+  // Callbacks
+  onEventClick?: (event: EyCalendarEvent, e: React.MouseEvent) => void;
+  onEventDrop?: (event: EyCalendarEvent, dropTarget: DropTarget) => void;
+  onEventResize?: (event: EyCalendarEvent, newStart: Date, newEnd: Date) => void;
+  onTimeSlotClick?: (date: Date, e: React.MouseEvent) => void;
+  onTimeSlotDoubleClick?: (date: Date, e: React.MouseEvent) => void;
+  onEventCreate?: (timeSlot: TimeSlot) => EyCalendarEvent | void;
   onDateChange?: (date: Date) => void;
-  onViewChange?: (view: ViewMode) => void;
+  onViewChange?: (view: ViewMode, date: Date) => void;
   onShowMoreClick?: (
     date: Date,
     hiddenEvents: EyCalendarEvent[],
     allEvents: EyCalendarEvent[]
   ) => void;
-  // ... 10+ more callbacks
+  onRenderComplete?: (renderTime: number, eventCount: number) => void;
 
-  // Options (styling, features, i18n)
-  options?: {
-    // Styling
-    theme?: Partial<Record<EyCalendarClassKey, string>>; // Inject custom CSS classes
-    unstyled?: boolean; // Disable default styles
-
-    // Features
-    enableDragDrop?: boolean;
-    enableResize?: boolean;
-    enableCreate?: boolean;
-    showWeekNumbers?: boolean;
-
-    // i18n
-    locale?: Locale; // date-fns locale
-    labels?: EyCalendarLabels;
-  };
+  // Grouped configuration remains available when preferred
+  options?: Partial<EyCalendarOptions>;
 }
 ```
 
@@ -355,20 +352,18 @@ import { tailwindTheme } from "./themes/tailwind";
   defaultView="week"
   height="100%"
   onEventClick={handleEventClick}
-  onEventDrop={handleEventDrop}
-  onEventResize={handleEventResize}
-  onSlotClick={handleTimeSlotClick}
-  options={{
-    enableDragDrop: true,
-    enableResize: true,
-    showWeekNumbers: true,
-    locale: fr,
-    theme: {
-      ...tailwindTheme,
-      // Override specific classes for dark mode
-      root: "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
-      toolbar: "bg-transparent border-b border-gray-200",
-    },
+  onEventDrop={(event, dropTarget) => {
+    handleEventDrop(event.id, dropTarget.dateStart, dropTarget.dateEnd);
+  }}
+  onEventResize={(event, newStart, newEnd) => {
+    handleEventResize(event.id, newStart, newEnd);
+  }}
+  onTimeSlotClick={handleTimeSlotClick}
+  locale={fr}
+  theme={{
+    ...tailwindTheme,
+    root: "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100",
+    toolbar: "bg-transparent border-b border-gray-200",
   }}
 />;
 ```
@@ -446,6 +441,8 @@ This project uses Turborepo with pnpm workspaces.
 pnpm install          # Install dependencies
 pnpm dev              # Start development
 pnpm build            # Build all packages
+pnpm validate:publication # Validate the packed package contract and example consumers
+pnpm validate:consumers # Build the Vite and Next example consumers
 pnpm lint             # Run linter
 ```
 
@@ -456,22 +453,3 @@ See our [ROADMAP.md](./ROADMAP.md) for planned features and upcoming releases.
 ## Status
 
 EyCalendar is in active development. The core functionality is stable, but breaking changes may occur before v1.0.
-
-## Contributing
-
-We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) to get started.
-
-## Links
-
-- [Documentation](https://github.com/zuher83/ey-calendar) (comming soon)
-- [Changelog](./packages/ey-calendar/CHANGELOG.md)
-- [Issues](https://github.com/zuher83/ey-calendar/issues)
-- [Discussions](https://github.com/zuher83/ey-calendar/discussions)
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
-
-## License
-
-MIT © [Zuher ELMAS - Emoory Team](LICENSE)

@@ -1,5 +1,6 @@
 import { EyCalendar } from "@emoory/ey-calendar";
 import type { EyCalendarEvent } from "@emoory/ey-calendar";
+import { headlessClassNames } from "./headlessTheme";
 
 function App() {
   const events: EyCalendarEvent[] = [
@@ -27,9 +28,23 @@ function App() {
   ];
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1 style={{ marginBottom: "2rem" }}>📅 EyCalendar - Vite + React Example</h1>
-      <EyCalendar events={events} defaultView="week" />
+    <div className="vite-shell">
+      <section className="vite-card">
+        <h1>EyCalendar - Vite + React 19</h1>
+        <p>Published root import with the full CSS bundle.</p>
+        <EyCalendar events={events} defaultView="week" />
+      </section>
+
+      <section className="vite-card">
+        <h2>Headless consumer</h2>
+        <p>Published root import with unstyled mode and local class mappings.</p>
+        <EyCalendar
+          events={events}
+          defaultView="planning"
+          unstyled
+          classNames={headlessClassNames}
+        />
+      </section>
     </div>
   );
 }

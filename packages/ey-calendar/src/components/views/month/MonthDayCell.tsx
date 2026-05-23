@@ -1,16 +1,19 @@
 // Day cell in the monthly view: background, day number, and single-day events
 
 import { useCallback, useEffect, useRef } from "react";
-import { format } from "date-fns";
+import { endOfDay, format } from "date-fns";
 import { useCallbacks } from "../../../context/CallbacksContext";
 import { useEvents } from "../../../context/EventsContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useViewActions } from "../../../context/ViewContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
 import { useEyCalendarClasses } from "../../../hooks/useEyCalendarClasses";
+import { useEyCalendarLabels } from "../../../hooks/useEyCalendarLabels";
+import { useTimeSlotInteractions } from "../../../hooks/useTimeSlotInteractions";
 import type { EyCalendarEvent } from "../../../types";
 import { cn } from "../../../utils/cn";
 import { getEventsForDate } from "../../../utils/eventUtils";
+import { moveFocusByOffset, moveFocusToBoundary } from "../../../utils/focusNavigation";
 import { MobileDot } from "./MobileDot";
 import { MonthEventItem } from "./MonthEventItem";
 
@@ -41,7 +44,12 @@ export function MonthDayCell({
   const { state: eventsState } = useEvents();
   const { events } = eventsState;
   const { makeDropTarget } = useDragAndDrop();
+  const { triggerTimeSlotClick, triggerTimeSlotDoubleClick } = useTimeSlotInteractions();
   const dayRef = useRef<HTMLDivElement>(null);
+  const creationEnabled = options.enableCreate !== false && options.readonly !== true;
+  const todayHighlighted = options.highlightToday !== false && isToday;
+  const daysPerWeek = options.showWeekends !== false ? 7 : 5;
+  const labels = useEyCalendarLabels(options.labels, options.locale);
 
   const getClass = useEyCalendarClasses({
     theme: options.theme,
@@ -77,9 +85,20 @@ export function MonthDayCell({
 
   const handleCellClick = useCallback(
     (e: React.MouseEvent) => {
-      callbacks?.onTimeSlotClick?.(date, e);
+      if (!creationEnabled) return;
+
+      triggerTimeSlotClick(date, e, { slotEnd: endOfDay(date) });
     },
-    [date, callbacks]
+    [date, creationEnabled, triggerTimeSlotClick]
+  );
+
+  const handleCellDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!creationEnabled) return;
+
+      triggerTimeSlotDoubleClick(date, e);
+    },
+    [date, creationEnabled, triggerTimeSlotDoubleClick]
   );
 
   const handleMoreClick = useCallback(
@@ -89,6 +108,52 @@ export function MonthDayCell({
       callbacks?.onShowMoreClick?.(date, dayEvents.slice(-overflowCount), dayEvents);
     },
     [date, events, overflowCount, callbacks]
+  );
+
+  const handleDayNumberKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLSpanElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleDayNumberClick(e as unknown as React.MouseEvent);
+        return;
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        moveFocusByOffset(e.currentTarget, "[data-eycalendar-month-day-trigger]", -1);
+        return;
+      }
+
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        moveFocusByOffset(e.currentTarget, "[data-eycalendar-month-day-trigger]", 1);
+        return;
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        moveFocusByOffset(e.currentTarget, "[data-eycalendar-month-day-trigger]", -daysPerWeek);
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        moveFocusByOffset(e.currentTarget, "[data-eycalendar-month-day-trigger]", daysPerWeek);
+        return;
+      }
+
+      if (e.key === "Home") {
+        e.preventDefault();
+        moveFocusToBoundary("[data-eycalendar-month-day-trigger]", "start");
+        return;
+      }
+
+      if (e.key === "End") {
+        e.preventDefault();
+        moveFocusToBoundary("[data-eycalendar-month-day-trigger]", "end");
+      }
+    },
+    [daysPerWeek, handleDayNumberClick]
   );
 
   const availableRowsCount = Math.max(0, maxEventRows - occupiedRows.length);
@@ -123,8 +188,11 @@ export function MonthDayCell({
       ref={dayRef}
       className={getClass("monthDayCell")}
       onClick={handleCellClick}
+      onDoubleClick={handleCellDoubleClick}
+      role="gridcell"
+      aria-label={format(date, "EEEE d MMMM yyyy", { locale })}
       data-eycalendar-day-cell=""
-      data-today={isToday ? "true" : undefined}
+      data-today={todayHighlighted ? "true" : undefined}
       data-outside-month={!isCurrentMonth ? "true" : undefined}
       data-current-month={isCurrentMonth ? "true" : "false"}
       aria-current={isToday ? "date" : undefined}
@@ -132,17 +200,13 @@ export function MonthDayCell({
       <span
         className={cn(getClass("monthDayNumber"), getClass("monthDayNumberClickable"))}
         onClick={handleDayNumberClick}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleDayNumberClick(e as unknown as React.MouseEvent);
-          }
-        }}
+        onKeyDown={handleDayNumberKeyDown}
         role="button"
         tabIndex={0}
-        aria-label={format(date, "EEEE d MMMM yyyy")}
+        aria-label={format(date, "EEEE d MMMM yyyy", { locale })}
         data-eycalendar-day-number=""
-        data-today={isToday ? "true" : undefined}
+        data-eycalendar-month-day-trigger=""
+        data-today={todayHighlighted ? "true" : undefined}
         data-past={isPast ? "true" : undefined}
       >
         {format(date, "d")}
@@ -189,7 +253,7 @@ export function MonthDayCell({
           }}
           role="button"
           tabIndex={0}
-          aria-label={`Show ${overflowCount} more events`}
+          aria-label={labels.ariaMoreEvents(overflowCount)}
         >
           +{overflowCount} more
         </div>

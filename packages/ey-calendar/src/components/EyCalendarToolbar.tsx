@@ -2,7 +2,7 @@
 // src/components/ey-calendar/components/CalendarToolbar.tsx
 
 import { useOptions } from "../context/OptionsContext";
-import { useEyCalendarView } from "../hooks";
+import { useEyCalendarLabels, useEyCalendarView } from "../hooks";
 import { useEyCalendarClasses } from "../hooks/useEyCalendarClasses";
 import type { ViewMode } from "../types";
 import { DefaultButton } from "./defaults";
@@ -49,6 +49,8 @@ export function EyCalendarToolbar({
 }: CalendarToolbarProps) {
   const { options } = useOptions();
   const { currentView, navigation, actions, utils } = useEyCalendarView();
+  const showTodayAction = showTodayButton && options.showToday !== false;
+  const labels = useEyCalendarLabels(options.labels, options.locale);
 
   // Get class getter from context options
   const getClass = useEyCalendarClasses({
@@ -64,12 +66,12 @@ export function EyCalendarToolbar({
     <div
       className={getClass("toolbar") + (className ? ` ${className}` : "")}
       role="toolbar"
-      aria-label="Calendar toolbar"
+      aria-label={labels.ariaCalendarToolbar}
       data-eycalendar-toolbar=""
     >
       {/* Left section: Navigation */}
       <div className={getClass("toolbarNavigation")} data-eycalendar-toolbar-navigation="">
-        {showTodayButton && (
+        {showTodayAction && (
           <Button
             variant="outline"
             size="sm"

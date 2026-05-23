@@ -40,13 +40,6 @@ export function mergeCalendarOptions(
     };
   }
 
-  if (userOptions.views) {
-    merged.views = {
-      ...defaults.views,
-      ...userOptions.views,
-    };
-  }
-
   if (userOptions.components) {
     merged.components = {
       ...defaults.components,

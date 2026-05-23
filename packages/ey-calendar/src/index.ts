@@ -29,20 +29,66 @@ export { CallbacksProvider } from "./context/CallbacksContext";
 export { DragDropProvider } from "./context/DragDropContext";
 
 // Hooks
-export * from "./hooks";
+export {
+  useEyCalendarView,
+  useTimeCalculations,
+  useDragAndDrop,
+  useContainerHeight,
+  useEyCalendarClasses,
+  useEyCalendarLabels,
+  useEyCalendarComponents,
+} from "./hooks";
 
-// Types - Export all types
-export type * from "./types";
+export type {
+  UseContainerHeightOptions,
+  UseContainerHeightResult,
+  UseEyCalendarClassesOptions,
+  GetEyCalendarClass,
+} from "./hooks";
+
+// Types
+export type {
+  ViewMode,
+  TimeFormat,
+  GridGranularity,
+  ConflictStrategy,
+  EyCalendarEvent,
+  EventPosition,
+  EventColumn,
+  EventFieldMapping,
+  EyCalendarEventData,
+  TimeSlotConfig,
+  TimeSlot,
+  DateRange,
+  ConflictGroup,
+  ConflictResolution,
+  DropTarget,
+  PositionCalculation,
+  AnimationConfig,
+  EyCalendarOptions,
+  EyCalendarColorTheme,
+  EyCalendarCallbacks,
+  EyCalendarClassKey,
+  EyCalendarClassNames,
+  EyCalendarThemeClasses,
+  EyCalendarLabels,
+  EyCalendarComponents,
+  DefaultButtonProps,
+  DefaultBadgeProps,
+  IconProps,
+  DragMovePayload,
+  DragResizePayload,
+  DragPayload,
+  WeekDayDropPayload,
+  MonthDropPayload,
+  DropPayload,
+} from "./types";
 
 // Utils
 export { cn } from "./utils/cn";
-export * from "./utils/dateUtils";
-export * from "./utils/eventUtils";
-export * from "./utils/conflictUtils";
-export * from "./utils/slotUtils";
 
 // Themes
-export * from "./themes";
+export { DEFAULT_CALENDAR_THEME, EMPTY_CALENDAR_THEME, resolveTheme } from "./themes";
 
 // Locales
 export { enCalendar, enLabels, frCalendar, frLabels, deCalendar, deLabels } from "./locales";

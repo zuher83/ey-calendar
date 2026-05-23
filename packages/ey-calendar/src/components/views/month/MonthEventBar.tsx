@@ -14,6 +14,7 @@ import {
 
 export interface MonthEventBarProps {
   segment: EventSegment;
+  totalColumns: number;
   segmentStartOffsetDays: number;
   visibleSegmentStartDate: Date;
   locale?: import("date-fns").Locale;
@@ -21,6 +22,7 @@ export interface MonthEventBarProps {
 
 export function MonthEventBar({
   segment,
+  totalColumns,
   segmentStartOffsetDays,
   visibleSegmentStartDate,
   locale,
@@ -72,8 +74,8 @@ export function MonthEventBar({
     e.stopPropagation();
   };
 
-  const leftPercent = (startCol / 7) * 100;
-  const widthPercent = (span / 7) * 100;
+  const leftPercent = (startCol / totalColumns) * 100;
+  const widthPercent = (span / totalColumns) * 100;
   const eventRowHeight = 20;
   const eventRowGap = 2;
   const topOffset = row * (eventRowHeight + eventRowGap);

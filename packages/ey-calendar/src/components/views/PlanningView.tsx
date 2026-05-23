@@ -10,6 +10,7 @@ import { useOptions } from "../../context/OptionsContext";
 import { useViewCurrentDate } from "../../context/ViewContext";
 import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
 import { useEyCalendarComponents } from "../../hooks/useEyCalendarComponents";
+import { useEventKeyboardInteractions } from "../../hooks/useEventKeyboardInteractions";
 import { useEyCalendarLabels } from "../../hooks/useEyCalendarLabels";
 import { useTimeCalculations } from "../../hooks/useTimeCalculations";
 import type { EyCalendarEvent } from "../../types";
@@ -81,6 +82,7 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
   const { state: eventsState } = useEvents();
   const { options } = useOptions();
   const { callbacks } = useCallbacks();
+  const highlightToday = options.highlightToday !== false;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const todayRef = useRef<HTMLDivElement>(null);
 
@@ -157,7 +159,7 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
       const dateStr = format(date, "d MMMM yyyy", { locale });
 
       let status = "";
-      if (isToday) {
+      if (highlightToday && isToday) {
         status = ` - ${labels.planningToday}`;
       } else if (isPast) {
         status = ` - ${labels.planningPast}`;
@@ -165,7 +167,7 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
 
       return `${dayName.charAt(0).toUpperCase() + dayName.slice(1)} ${dateStr}${status}`;
     },
-    [labels, locale]
+    [highlightToday, labels, locale]
   );
 
   return (
@@ -188,7 +190,7 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
                 ref={dayGroup.isToday ? todayRef : undefined}
                 className={getClass("planningDateHeader")}
                 data-eycalendar-date-header=""
-                data-today={dayGroup.isToday ? "true" : undefined}
+                data-today={highlightToday && dayGroup.isToday ? "true" : undefined}
                 data-past={dayGroup.isPast ? "true" : undefined}
               >
                 <h3 className={getClass("planningDateHeaderTitle")}>
@@ -263,15 +265,14 @@ function EventCard({ event, isPast, labels, Components, getClass, locale, onEven
     [event, onEventClick]
   );
 
-  const handleKeyDown = useCallback(
+  const handleKeyActivate = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onEventClick?.(event, e as unknown as React.MouseEvent);
-      }
+      onEventClick?.(event, e as unknown as React.MouseEvent);
     },
     [event, onEventClick]
   );
+
+  const handleKeyDown = useEventKeyboardInteractions(event, handleKeyActivate);
 
   return (
     <div
@@ -284,7 +285,7 @@ function EventCard({ event, isPast, labels, Components, getClass, locale, onEven
       onKeyDown={handleKeyDown}
       role="article"
       tabIndex={0}
-      aria-label={`${event.title}, ${formatTime(event.start, locale)} - ${formatTime(event.end, locale)}${event.isAllDay ? ", all day" : ""}${isPast ? ", past event" : ""}`}
+      aria-label={`${labels.ariaEvent(event.title)}, ${formatTime(event.start, locale)} - ${formatTime(event.end, locale)}${event.isAllDay ? `, ${labels.allDay}` : ""}${isPast ? `, ${labels.past}` : ""}`}
       data-eycalendar-event-card=""
       data-event-id={event.id}
       data-past={isPast ? "true" : undefined}

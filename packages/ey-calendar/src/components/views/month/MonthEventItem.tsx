@@ -1,11 +1,13 @@
 // Single-day event item for month view (dot + time + title style)
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { useCallbacks } from "../../../context/CallbacksContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
 import { useEyCalendarClasses } from "../../../hooks/useEyCalendarClasses";
+import { useEyCalendarLabels } from "../../../hooks/useEyCalendarLabels";
+import { useEventKeyboardInteractions } from "../../../hooks/useEventKeyboardInteractions";
 import type { EyCalendarEvent } from "../../../types";
 import { getEventColor } from "../../../utils/eventUtils";
 
@@ -21,6 +23,7 @@ export function MonthEventItem({ event, locale, topOffset, height }: MonthEventI
   const { options } = useOptions();
   const { makeDraggable } = useDragAndDrop();
   const eventRef = useRef<HTMLDivElement>(null);
+  const labels = useEyCalendarLabels(options.labels, options.locale);
 
   const getClass = useEyCalendarClasses({
     theme: options.theme,
@@ -52,6 +55,15 @@ export function MonthEventItem({ event, locale, topOffset, height }: MonthEventI
     e.stopPropagation();
   };
 
+  const handleKeyActivate = useCallback(
+    (e: React.KeyboardEvent) => {
+      callbacks?.onEventClick?.(event, e as unknown as React.MouseEvent);
+    },
+    [callbacks, event]
+  );
+
+  const handleKeyDown = useEventKeyboardInteractions(event, handleKeyActivate);
+
   const eventColor = getEventColor(event);
 
   return (
@@ -61,6 +73,10 @@ export function MonthEventItem({ event, locale, topOffset, height }: MonthEventI
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onContextMenu={handleContextMenu}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={labels.ariaEvent(event.title)}
       data-eycalendar-month-event-item=""
       data-event-id={event.id}
       data-past={isPastEvent ? "true" : undefined}

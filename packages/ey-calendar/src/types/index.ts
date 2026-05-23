@@ -1,19 +1,7 @@
 // Main types export file - Facade for all calendar types
 // src/components/ey-calendar/types/index.ts
 
-// Re-export all types from modular files
-export type * from "./base";
-export type * from "./events";
-export type * from "./resources";
-export type * from "./time";
-export type * from "./views";
-export type * from "./conflicts";
-export type * from "./state";
-export type * from "./props";
-export type * from "./headless";
-export type * from "./components";
-
-// Also export interfaces (not just types)
+// Explicit public type surface
 export type {
   // Base
   ViewMode,
@@ -32,14 +20,6 @@ export type {
 } from "./events";
 
 export type {
-  // Resources
-  EyCalendarResource,
-  WorkingHours,
-  DaySchedule,
-  ResourceFieldMapping,
-} from "./resources";
-
-export type {
   // Time
   TimeSlotConfig,
   TimeSlot,
@@ -47,7 +27,6 @@ export type {
 
 export type {
   // Views
-  ViewConfig,
   DateRange,
 } from "./views";
 
@@ -59,7 +38,6 @@ export type {
 
 export type {
   // State
-  EyCalendarState,
   DropTarget,
   PositionCalculation,
   AnimationConfig,

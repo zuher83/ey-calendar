@@ -11,6 +11,7 @@ import type {
   EyCalendarLabels,
   EyCalendarThemeClasses,
 } from "../types";
+import type { TimeSlotConfig } from "../types";
 
 // ============================================================================
 // TYPES
@@ -18,6 +19,15 @@ import type {
 
 export interface CalendarOptionsContextValue {
   locale?: Locale;
+  timeSlots?: TimeSlotConfig;
+  showWeekends?: boolean;
+  showToday?: boolean;
+  highlightToday?: boolean;
+  readonly?: boolean;
+  enableDragDrop?: boolean;
+  enableResize?: boolean;
+  enableCreate?: boolean;
+  enableDelete?: boolean;
   theme?: string | EyCalendarThemeClasses;
   unstyled?: boolean;
   classNames?: EyCalendarClassNames;
@@ -55,6 +65,15 @@ export function OptionsProvider({ children, options = {} }: OptionsProviderProps
     () => ({
       options: {
         locale: options.locale,
+        timeSlots: options.timeSlots,
+        showWeekends: options.showWeekends ?? true,
+        showToday: options.showToday ?? true,
+        highlightToday: options.highlightToday ?? true,
+        readonly: options.readonly ?? false,
+        enableDragDrop: options.enableDragDrop ?? true,
+        enableResize: options.enableResize ?? true,
+        enableCreate: options.enableCreate ?? true,
+        enableDelete: options.enableDelete ?? true,
         theme: options.theme,
         unstyled: options.unstyled ?? false,
         classNames: options.classNames ?? {},
@@ -67,6 +86,15 @@ export function OptionsProvider({ children, options = {} }: OptionsProviderProps
     }),
     [
       options.locale,
+      options.timeSlots,
+      options.showWeekends,
+      options.showToday,
+      options.highlightToday,
+      options.readonly,
+      options.enableDragDrop,
+      options.enableResize,
+      options.enableCreate,
+      options.enableDelete,
       options.theme,
       options.unstyled,
       options.classNames,

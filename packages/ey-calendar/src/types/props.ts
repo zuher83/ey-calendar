@@ -1,7 +1,6 @@
 import type React from "react";
 import type { Locale } from "date-fns";
 import type { ConflictStrategy, ViewMode } from "./base";
-import type { ConflictGroup, ConflictResolution } from "./conflicts";
 import type { EyCalendarEvent } from "./events";
 import type {
   EyCalendarClassNames,
@@ -9,10 +8,9 @@ import type {
   EyCalendarLabels,
   EyCalendarThemeClasses,
 } from "./headless";
-import type { EyCalendarResource } from "./resources";
 import type { DropTarget } from "./state";
 import type { TimeSlot, TimeSlotConfig } from "./time";
-import type { DateRange, ViewConfig } from "./views";
+import type { DateRange } from "./views";
 
 /**
  * Calendar configuration options
@@ -22,8 +20,6 @@ export interface EyCalendarOptions {
   defaultView?: ViewMode;
   defaultDate?: Date;
 
-  // View configuration
-  views?: Partial<Record<ViewMode, Partial<ViewConfig>>>;
   timeSlots?: TimeSlotConfig;
 
   // Display
@@ -31,7 +27,6 @@ export interface EyCalendarOptions {
   showToday?: boolean;
   highlightToday?: boolean;
   showWeekNumbers?: boolean;
-  showResourceHeaders?: boolean;
   showToolbar?: boolean;
 
   // Layout
@@ -78,8 +73,6 @@ export interface EyCalendarOptions {
   maxEventsPerSlot?: number;
 
   // Performance
-  virtualizeThreshold?: number;
-  overscan?: number;
   debounceMs?: number;
 
   // Internationalization
@@ -202,14 +195,6 @@ export interface EyCalendarCallbacks {
     allEvents: EyCalendarEvent[]
   ) => void;
 
-  // Resources
-  onResourceSelect?: (resourceId: string) => void;
-  onResourceAvailabilityCheck?: (resourceId: string, timeSlot: TimeSlot) => boolean;
-
-  // Conflicts
-  onConflictDetected?: (group: ConflictGroup) => ConflictResolution | void;
-  onConflictResolved?: (resolution: ConflictResolution) => void;
-
   // Performance
   onRenderComplete?: (renderTime: number, eventCount: number) => void;
   onScrollChange?: (position: { x: number; y: number }) => void;
@@ -221,7 +206,6 @@ export interface EyCalendarCallbacks {
 export interface EyCalendarProps extends EyCalendarOptions, EyCalendarCallbacks {
   // Mandatory data
   events?: EyCalendarEvent[];
-  resources?: EyCalendarResource[];
 
   // Layout
   className?: string;

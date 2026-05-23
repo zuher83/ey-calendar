@@ -8,6 +8,7 @@
 
 import { useEffect, useRef } from "react";
 import { useCallbacks } from "./CallbacksContext";
+import { useEvents } from "./EventsContext";
 import {
   useViewCurrentDate,
   useViewCurrentView,
@@ -21,10 +22,14 @@ import {
  */
 export function CallbacksObserver() {
   const { callbacks } = useCallbacks();
+  const {
+    state: { events },
+  } = useEvents();
   const currentDate = useViewCurrentDate();
   const currentView = useViewCurrentView();
   const { startDate, endDate } = useViewDateRange();
   const scrollPosition = useViewScrollPosition();
+  const renderStartTime = performance.now();
 
   // Track previous values to detect changes
   const prevDateRange = useRef<{ start: Date; end: Date } | null>(null);
@@ -109,6 +114,10 @@ export function CallbacksObserver() {
       prevScrollPosition.current = scrollPosition;
     }
   }, [scrollPosition, callbacks]);
+
+  useEffect(() => {
+    callbacks.onRenderComplete?.(Math.max(0, performance.now() - renderStartTime), events.length);
+  }, [callbacks, currentDate, currentView, endDate, events, renderStartTime, startDate]);
 
   // This component doesn't render anything
   return null;

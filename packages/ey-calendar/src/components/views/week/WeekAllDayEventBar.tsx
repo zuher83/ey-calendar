@@ -1,11 +1,13 @@
 // All-day event bar spanning multiple days in the week view header
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { useCallbacks } from "../../../context/CallbacksContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
 import { useEyCalendarClasses } from "../../../hooks/useEyCalendarClasses";
+import { useEyCalendarLabels } from "../../../hooks/useEyCalendarLabels";
+import { useEventKeyboardInteractions } from "../../../hooks/useEventKeyboardInteractions";
 import type { EventSegment } from "../../../utils/eventUtils";
 import { cn } from "../../../utils/cn";
 import {
@@ -26,6 +28,7 @@ export function WeekAllDayEventBar({ segment, locale, rowHeight, rowGap }: WeekA
   const { options } = useOptions();
   const { makeDraggable } = useDragAndDrop();
   const eventRef = useRef<HTMLDivElement>(null);
+  const labels = useEyCalendarLabels(options.labels, options.locale);
 
   const { event, startCol: _startCol, span, isStart, isEnd, row } = segment;
   void _startCol;
@@ -58,6 +61,15 @@ export function WeekAllDayEventBar({ segment, locale, rowHeight, rowGap }: WeekA
     e.stopPropagation();
   };
 
+  const handleKeyActivate = useCallback(
+    (e: React.KeyboardEvent) => {
+      callbacks?.onEventClick?.(event, e as unknown as React.MouseEvent);
+    },
+    [callbacks, event]
+  );
+
+  const handleKeyDown = useEventKeyboardInteractions(event, handleKeyActivate);
+
   const widthPercent = span * 100;
   const topOffset = row * (rowHeight + rowGap) + 4;
   const eventColor = getEventColor(event);
@@ -78,6 +90,10 @@ export function WeekAllDayEventBar({ segment, locale, rowHeight, rowGap }: WeekA
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onContextMenu={handleContextMenu}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={labels.ariaEvent(event.title)}
       data-eycalendar-allday-event=""
       data-event-id={event.id}
       style={{

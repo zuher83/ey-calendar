@@ -2,7 +2,7 @@
 // Extracted to enable independent testing and reduce EventBar complexity
 
 import { DEFAULT_TIME_SLOT_CONFIG } from "../../constants";
-import type { EventPosition, EyCalendarEvent } from "../../types";
+import type { EventPosition, EyCalendarEvent, GridGranularity } from "../../types";
 import {
   desaturateColor,
   getEventStyles,
@@ -25,13 +25,13 @@ export interface ResizePreviewState {
 export function computeResizePreviewPosition(
   resizePreview: ResizePreviewState,
   position: EventPosition | undefined,
-  cellHeight: number
+  cellHeight: number,
+  granularity: GridGranularity = DEFAULT_TIME_SLOT_CONFIG.granularity
 ): EventPosition | undefined {
   if (!resizePreview.isResizing || !resizePreview.startTime || !resizePreview.endTime || !position) {
     return position;
   }
 
-  const granularity = DEFAULT_TIME_SLOT_CONFIG.granularity;
   const effectiveCellHeight = cellHeight || 64;
 
   const startHour = resizePreview.startTime.getHours();

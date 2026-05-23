@@ -2,7 +2,7 @@
 // Single drop path: all business logic lives in makeDropTarget.onDrop.
 // makeDraggable.onDrop only resets UI state.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   draggable,
   dropTargetForElements,
@@ -10,6 +10,7 @@ import {
 import { useCallbacks } from "../context/CallbacksContext";
 import { useDragDrop } from "../context/DragDropContext";
 import { useEvents } from "../context/EventsContext";
+import { useOptions } from "../context/OptionsContext";
 import { useViewCellHeight } from "../context/ViewContext";
 import type { DragMovePayload, DropPayload } from "../types/dnd";
 import type { EventPosition, EyCalendarEvent } from "../types";
@@ -20,10 +21,6 @@ import {
   computeMonthDropTargetDate,
   computeWeekDayDrop,
 } from "../utils/dragUtils";
-
-// Event bars and day columns each call useDragAndDrop(), so move offsets
-// must live outside a single hook instance for the final drop to reuse them.
-const dragMoveOffsets = new Map<string, number>();
 
 function getMonthSegmentStartOffset(sourceElement: Element): number {
   if (!(sourceElement instanceof HTMLElement)) {
@@ -55,6 +52,30 @@ function getMonthDropTargetDate(
   );
 }
 
+type SharedDragSession = {
+  eventId?: string;
+  originalStart?: Date;
+  originalEnd?: Date;
+  initialMouseY?: number;
+  initialOffset?: number;
+  isResizing?: boolean;
+  resizeHandle?: "top" | "bottom";
+};
+
+const sharedDragSession: SharedDragSession = {};
+const sharedDragOffsets = new Map<string, number>();
+
+function resetSharedDragSession() {
+  sharedDragSession.eventId = undefined;
+  sharedDragSession.originalStart = undefined;
+  sharedDragSession.originalEnd = undefined;
+  sharedDragSession.initialMouseY = undefined;
+  sharedDragSession.initialOffset = undefined;
+  sharedDragSession.isResizing = undefined;
+  sharedDragSession.resizeHandle = undefined;
+  sharedDragOffsets.clear();
+}
+
 /**
  * Hook for managing drag & drop of events
  */
@@ -67,22 +88,12 @@ export function useDragAndDrop() {
   } = useDragDrop();
   const { updateEvent } = useEvents();
   const { callbacks } = useCallbacks();
+  const { options } = useOptions();
   const cellHeight = useViewCellHeight();
 
   const [isDragging, setIsDragging] = useState(false);
   const [draggedEvent, setDraggedEvent] = useState<EyCalendarEvent | null>(null);
   const [tempPosition, setTempPosition] = useState<EventPosition | null>(null);
-
-  // Initial drag data (original dates / resize state) — written by makeDraggable, read by makeDropTarget
-  const dragInitialData = useRef<{
-    eventId?: string;
-    originalStart?: Date;
-    originalEnd?: Date;
-    initialMouseY?: number;
-    initialOffset?: number;
-    isResizing?: boolean;
-    resizeHandle?: "top" | "bottom";
-  }>({});
 
   /** Reset all drag-related UI state */
   const resetDragState = useCallback(() => {
@@ -94,12 +105,37 @@ export function useDragAndDrop() {
     setTempEventPosition(undefined);
   }, [setDragging, setDraggedEventId, setTempEventPosition]);
 
+  /** Check if an event can be moved */
+  const canDragEvent = useCallback(
+    (event: EyCalendarEvent): boolean => {
+      if (options.readonly === true || options.enableDragDrop === false) return false;
+      if (event.custom?.readOnly) return false;
+      if (event.isRecurring && !event.custom?.allowDragRecurring) return false;
+      return true;
+    },
+    [options.enableDragDrop, options.readonly]
+  );
+
+  /** Check if an event can be resized */
+  const canResizeEvent = useCallback(
+    (event: EyCalendarEvent): boolean => {
+      if (options.readonly === true || options.enableResize === false) return false;
+      if (event.custom?.readOnly) return false;
+      return true;
+    },
+    [options.enableResize, options.readonly]
+  );
+
   /**
    * Configure an element as draggable.
    * Business logic is intentionally absent here — it lives in makeDropTarget.onDrop.
    */
   const makeDraggable = useCallback(
     (element: HTMLElement, event: EyCalendarEvent) => {
+      if (!canDragEvent(event)) {
+        return () => {};
+      }
+
       return draggable({
         element,
         getInitialData: () =>
@@ -111,7 +147,7 @@ export function useDragAndDrop() {
         onDragStart: ({ location }) => {
           let initialOffset = 0;
 
-          if (location.initial.input.clientY !== undefined) {
+          if (location.initial.input.clientY) {
             const container =
               element.closest('[data-testid="day-column"]') ||
               element.closest('[data-drop-target="true"]') ||
@@ -123,20 +159,18 @@ export function useDragAndDrop() {
               const mouseY = location.initial.input.clientY;
               const eventTopInContainer = elementRect.top - containerRect.top;
               const mouseYInContainer = mouseY - containerRect.top;
-
               initialOffset = mouseYInContainer - eventTopInContainer;
             }
           }
 
-          dragInitialData.current = {
-            eventId: event.id,
-            originalStart: new Date(event.start),
-            originalEnd: new Date(event.end),
-            initialMouseY: location.initial.input.clientY,
-            initialOffset,
-            isResizing: false,
-          };
-          dragMoveOffsets.set(event.id, initialOffset);
+          sharedDragSession.eventId = event.id;
+          sharedDragSession.originalStart = new Date(event.start);
+          sharedDragSession.originalEnd = new Date(event.end);
+          sharedDragSession.initialMouseY = location.initial.input.clientY;
+          sharedDragSession.initialOffset = initialOffset;
+          sharedDragSession.isResizing = false;
+          sharedDragSession.resizeHandle = undefined;
+          sharedDragOffsets.set(event.id, initialOffset);
 
           setIsDragging(true);
           setDraggedEvent(event);
@@ -144,7 +178,7 @@ export function useDragAndDrop() {
           setDraggedEventId(event.id);
         },
         onDrag: ({ location }) => {
-          const dragData = dragInitialData.current;
+          const dragData = sharedDragSession;
           if (!dragData || !location.current.input.clientY) return;
           if (location.current.dropTargets.length === 0) return;
 
@@ -165,19 +199,14 @@ export function useDragAndDrop() {
           }
         },
         onDrop: () => {
-          const draggedEventId = dragInitialData.current.eventId;
-
           resetDragState();
           setTimeout(() => {
-            dragInitialData.current = {};
-            if (draggedEventId) {
-              dragMoveOffsets.delete(draggedEventId);
-            }
+            resetSharedDragSession();
           }, 200);
         },
       });
     },
-    [callbacks, resetDragState, setDragging, setDraggedEventId]
+    [callbacks, canDragEvent, resetDragState, setDragging, setDraggedEventId]
   );
 
   /**
@@ -205,6 +234,10 @@ export function useDragAndDrop() {
           const sourcePayload = source.data as unknown as DragMovePayload;
           const event = sourcePayload.event;
           if (!event) return;
+
+          const dragData = sharedDragSession;
+          const initialOffset =
+            sharedDragOffsets.get(event.id) ?? dragData.initialOffset ?? 0;
 
           let updates: Partial<EyCalendarEvent>;
 
@@ -243,7 +276,7 @@ export function useDragAndDrop() {
             mouseY,
             containerRect,
             data.cellHeight,
-            dragMoveOffsets.get(event.id) ?? dragInitialData.current.initialOffset ?? 0
+            initialOffset
           );
 
           updates = { start, end };
@@ -280,6 +313,10 @@ export function useDragAndDrop() {
         onResizeEnd?: () => void;
       }
     ) => {
+      if (!canResizeEvent(event)) {
+        return () => {};
+      }
+
       return draggable({
         element,
         getInitialData: () =>
@@ -290,14 +327,13 @@ export function useDragAndDrop() {
             resizeHandle: handle,
           }) as unknown as Record<string, unknown>,
         onDragStart: ({ location }) => {
-          dragInitialData.current = {
-            eventId: event.id,
-            originalStart: new Date(event.start),
-            originalEnd: new Date(event.end),
-            initialMouseY: location.initial.input.clientY,
-            isResizing: true,
-            resizeHandle: handle,
-          };
+          sharedDragSession.eventId = event.id;
+          sharedDragSession.originalStart = new Date(event.start);
+          sharedDragSession.originalEnd = new Date(event.end);
+          sharedDragSession.initialMouseY = location.initial.input.clientY;
+          sharedDragSession.initialOffset = 0;
+          sharedDragSession.isResizing = true;
+          sharedDragSession.resizeHandle = handle;
 
           setIsDragging(true);
           setDraggedEvent(event);
@@ -306,10 +342,10 @@ export function useDragAndDrop() {
           resizeCallbacks?.onResizeStart?.(event.id, handle);
         },
         onDrag: ({ location }) => {
-          const dragData = dragInitialData.current;
+          const dragData = sharedDragSession;
           if (
-            !dragData?.originalStart ||
-            !dragData?.originalEnd ||
+            !dragData.originalStart ||
+            !dragData.originalEnd ||
             !location.current.input.clientY
           ) {
             return;
@@ -324,7 +360,8 @@ export function useDragAndDrop() {
           const targetTime = calculateTargetTime(
             location.current.input.clientY,
             containerRect,
-            effectiveCellHeight
+            effectiveCellHeight,
+            0
           );
 
           const targetDate = new Date(dragData.originalStart);
@@ -348,10 +385,10 @@ export function useDragAndDrop() {
           resizeCallbacks?.onResize?.(event.id, newStart, newEnd, handle);
         },
         onDrop: ({ location }) => {
-          const dragData = dragInitialData.current;
+          const dragData = sharedDragSession;
           if (
-            !dragData?.originalStart ||
-            !dragData?.originalEnd ||
+            !dragData.originalStart ||
+            !dragData.originalEnd ||
             !location.current.input.clientY
           ) {
             return;
@@ -366,7 +403,8 @@ export function useDragAndDrop() {
           const targetTime = calculateTargetTime(
             location.current.input.clientY,
             containerRect,
-            effectiveCellHeight
+            effectiveCellHeight,
+            0
           );
 
           const targetDate = new Date(dragData.originalStart);
@@ -400,22 +438,12 @@ export function useDragAndDrop() {
           setDragging(false);
           setDraggedEventId(undefined);
           setTempEventPosition(undefined);
-          dragInitialData.current = {};
+          resetSharedDragSession();
         },
       });
     },
-    [callbacks, updateEvent, setDragging, setDraggedEventId, setTempEventPosition, cellHeight]
+    [callbacks, canResizeEvent, updateEvent, setDragging, setDraggedEventId, setTempEventPosition, cellHeight]
   );
-
-  // ============================================================================
-  // CLEANUP
-  // ============================================================================
-
-  useEffect(() => {
-    return () => {
-      dragInitialData.current = {};
-    };
-  }, []);
 
   /** Updates the temporary position during drag */
   const updateTempPosition = (position: EventPosition) => {
@@ -425,15 +453,9 @@ export function useDragAndDrop() {
 
   /** Cancels the current drag */
   const cancelDrag = useCallback(() => {
+    resetSharedDragSession();
     resetDragState();
   }, [resetDragState]);
-
-  /** Check if an event can be moved */
-  const canDragEvent = (event: EyCalendarEvent): boolean => {
-    if (event.custom?.readOnly) return false;
-    if (event.isRecurring && !event.custom?.allowDragRecurring) return false;
-    return true;
-  };
 
   /** Validate if a drop is allowed */
   const canDropEvent = (

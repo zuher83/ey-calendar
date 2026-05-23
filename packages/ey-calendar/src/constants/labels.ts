@@ -29,6 +29,12 @@ export interface EyCalendarLabels {
 
   // General
   noEvents: string;
+  viewHeadStatic: string;
+  ariaCalendar: string;
+  ariaCalendarToolbar: string;
+  ariaEvent: (title: string) => string;
+  ariaMoreEvents: (count: number) => string;
+  ariaViewAnnouncement: (viewLabel: string, currentLabel: string, eventCount: number) => string;
 
   // Navigation
   navNextMonth: string;
@@ -46,7 +52,6 @@ export interface EyCalendarLabels {
   viewWeek: string;
   viewDay: string;
   viewPlanning: string;
-  viewHeadStatic: string;
 }
 
 /**
@@ -75,6 +80,13 @@ export const DEFAULT_LABELS: EyCalendarLabels = {
 
   // General
   noEvents: "No events",
+  viewHeadStatic: "Even.",
+  ariaCalendar: "Calendar",
+  ariaCalendarToolbar: "Calendar toolbar",
+  ariaEvent: (title: string) => `Event: ${title}`,
+  ariaMoreEvents: (count: number) => `Show ${count} more events`,
+  ariaViewAnnouncement: (viewLabel: string, currentLabel: string, eventCount: number) =>
+    `${viewLabel}. ${currentLabel}. ${eventCount === 0 ? "No events" : `${eventCount} event${eventCount > 1 ? "s" : ""}`}`,
 
   // Navigation
   navNextMonth: "Next month",
@@ -92,5 +104,4 @@ export const DEFAULT_LABELS: EyCalendarLabels = {
   viewWeek: "Week",
   viewDay: "Day",
   viewPlanning: "Planning",
-  viewHeadStatic: "Even.",
 };

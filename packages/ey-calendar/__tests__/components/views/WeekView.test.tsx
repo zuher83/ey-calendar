@@ -1,6 +1,6 @@
 // Tests for WeekView component
 import React from "react";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { WeekView } from "../../../src/components/views/WeekView";
 import { createMockEvent, renderWithProvider } from "../../setup/testUtils";
 
@@ -19,6 +19,16 @@ describe("WeekView", () => {
       // Should have day headers for each day of the week
       const dayHeaders = document.querySelectorAll("[data-eycalendar-day-header]");
       expect(dayHeaders.length).toBe(7);
+    });
+
+    it("renders 5 day headers when showWeekends is false", () => {
+      renderWithProvider(<WeekView />, {
+        initialView: "week",
+        options: { showWeekends: false },
+      });
+
+      const dayHeaders = document.querySelectorAll("[data-eycalendar-day-header]");
+      expect(dayHeaders.length).toBe(5);
     });
 
     it("applies custom className", () => {
@@ -195,6 +205,19 @@ describe("WeekView", () => {
       const todayHeader = document.querySelector('[data-today="true"]');
       expect(todayHeader).toBeInTheDocument();
     });
+
+    it("does not mark the current day when highlightToday is false", () => {
+      const today = new Date();
+
+      renderWithProvider(<WeekView />, {
+        initialDate: today,
+        initialView: "week",
+        options: { highlightToday: false },
+      });
+
+      const todayHeader = document.querySelector('[data-today="true"]');
+      expect(todayHeader).not.toBeInTheDocument();
+    });
   });
 
   describe("Empty state", () => {
@@ -225,6 +248,21 @@ describe("WeekView", () => {
       headers.forEach((header) => {
         expect(header).toBeInTheDocument();
       });
+    });
+
+    it("supports arrow-key navigation between day headers", () => {
+      renderWithProvider(<WeekView />, { initialView: "week" });
+
+      const headers = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-eycalendar-day-header]")
+      );
+
+      headers[0]?.focus();
+      fireEvent.keyDown(headers[0] as HTMLElement, { key: "ArrowRight" });
+      expect(headers[1]).toHaveFocus();
+
+      fireEvent.keyDown(headers[1] as HTMLElement, { key: "End" });
+      expect(headers[headers.length - 1]).toHaveFocus();
     });
 
     it("events are keyboard accessible", () => {

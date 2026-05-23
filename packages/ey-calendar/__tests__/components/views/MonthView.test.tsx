@@ -1,6 +1,6 @@
 // Tests for MonthView component
 import React from "react";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { MonthView } from "../../../src/components/views/MonthView";
 import { createMockEvent, renderWithProvider } from "../../setup/testUtils";
 
@@ -19,6 +19,16 @@ describe("MonthView", () => {
       // Should have headers for Mon, Tue, Wed, Thu, Fri, Sat, Sun
       const dayHeaders = document.querySelectorAll("[data-eycalendar-weekday-header]");
       expect(dayHeaders.length).toBe(7);
+    });
+
+    it("renders 5 day headers when showWeekends is false", () => {
+      renderWithProvider(<MonthView />, {
+        initialView: "month",
+        options: { showWeekends: false },
+      });
+
+      const dayHeaders = document.querySelectorAll("[data-eycalendar-weekday-header]");
+      expect(dayHeaders.length).toBe(5);
     });
 
     it("applies custom className", () => {
@@ -40,6 +50,19 @@ describe("MonthView", () => {
       const dayCells = document.querySelectorAll("[data-eycalendar-day-cell]");
       expect(dayCells.length).toBeGreaterThanOrEqual(28);
       expect(dayCells.length).toBeLessThanOrEqual(42);
+    });
+
+    it("renders a 5-day month grid when showWeekends is false", () => {
+      const january2024 = new Date(2024, 0, 15);
+
+      renderWithProvider(<MonthView />, {
+        initialDate: january2024,
+        initialView: "month",
+        options: { showWeekends: false },
+      });
+
+      const dayCells = document.querySelectorAll("[data-eycalendar-day-cell]");
+      expect(dayCells.length).toBe(25);
     });
   });
 
@@ -207,6 +230,19 @@ describe("MonthView", () => {
       const todayCell = document.querySelector('[data-today="true"]');
       expect(todayCell).toBeInTheDocument();
     });
+
+    it("does not mark the current day when highlightToday is false", () => {
+      const today = new Date();
+
+      renderWithProvider(<MonthView />, {
+        initialDate: today,
+        initialView: "month",
+        options: { highlightToday: false },
+      });
+
+      const todayCell = document.querySelector('[data-today="true"]');
+      expect(todayCell).not.toBeInTheDocument();
+    });
   });
 
   describe("Previous/Next month days", () => {
@@ -277,6 +313,28 @@ describe("MonthView", () => {
       dayCells.forEach((cell) => {
         expect(cell).toBeInTheDocument();
       });
+    });
+
+    it("exposes grid semantics for the month layout", () => {
+      renderWithProvider(<MonthView />, { initialView: "month" });
+
+      const monthGrid = document.querySelector("[data-eycalendar-month-grid]");
+      expect(monthGrid).toHaveAttribute("role", "grid");
+    });
+
+    it("supports arrow-key navigation between month day triggers", () => {
+      renderWithProvider(<MonthView />, { initialView: "month" });
+
+      const dayTriggers = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-eycalendar-month-day-trigger]")
+      );
+
+      dayTriggers[0]?.focus();
+      fireEvent.keyDown(dayTriggers[0] as HTMLElement, { key: "ArrowRight" });
+      expect(dayTriggers[1]).toHaveFocus();
+
+      fireEvent.keyDown(dayTriggers[1] as HTMLElement, { key: "ArrowDown" });
+      expect(dayTriggers[8]).toHaveFocus();
     });
 
     it("events are keyboard accessible", () => {

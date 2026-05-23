@@ -100,13 +100,14 @@ export function useEyCalendarView(): CalendarViewResult {
   const { options } = useOptions();
   const labels = useEyCalendarLabels(options.labels, options.locale);
   const locale = options.locale;
+  const showWeekends = options.showWeekends !== false;
 
   // Calcul de la plage visible selon la vue
   const visibleRange = useMemo(() => {
-    const range = getVisibleDateRange(currentDate, currentView);
+    const range = getVisibleDateRange(currentDate, currentView, showWeekends);
 
     return { start: range.start, end: range.end, days: range.days };
-  }, [currentView, currentDate]);
+  }, [currentView, currentDate, showWeekends]);
 
   // Informations de navigation
   const navigation = useMemo((): NavigationInfo => {
