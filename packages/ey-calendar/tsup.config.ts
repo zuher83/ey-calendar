@@ -29,11 +29,6 @@ export default defineConfig({
   treeshake: true,
   minify: true,
   external: ["react", "react-dom"],
-  esbuildOptions(options) {
-    options.banner = {
-      js: '"use client";',
-    };
-  },
   onSuccess: async () => {
     const srcDir = resolve(__dirname, "src/styles");
     const distDir = resolve(__dirname, "dist");

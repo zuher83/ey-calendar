@@ -2,16 +2,24 @@
 // src/components/ey-calendar/components/views/PlanningView.tsx
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import type React from "react";
 import { format, isSameDay, startOfDay, type Locale } from "date-fns";
+import { useCallbacks } from "../../context/CallbacksContext";
 import { useEvents } from "../../context/EventsContext";
 import { useOptions } from "../../context/OptionsContext";
-import { useView } from "../../context/ViewContext";
-import { useEyCalendarClasses } from "../../hooks/useEyCalendarClasses";
-import { useEyCalendarComponents } from "../../hooks/useEyCalendarComponents";
-import { useEyCalendarLabels } from "../../hooks/useEyCalendarLabels";
-import type { EyCalendarEvent } from "../../types";
+import { useViewCurrentDate } from "../../context/ViewContext";
+import type { GetEyCalendarClass } from "../../hooks";
+import { useEventKeyboardInteractions } from "../../hooks/useEventKeyboardInteractions";
+import { useTimeCalculations } from "../../hooks/useTimeCalculations";
+import type {
+  EyCalendarActivationEvent,
+  EyCalendarComponents,
+  EyCalendarEvent,
+  EyCalendarLabels,
+} from "../../types";
 import { cn } from "../../utils/cn";
 import { formatDuration, formatTime } from "../../utils/dateUtils";
+import { getEventsInDateRange, sortEventsByStartTime } from "../../utils/eventUtils";
 
 /**
  * Interface for PlanningView props
@@ -41,26 +49,27 @@ function groupEventsByDate(events: EyCalendarEvent[]): EventsByDate[] {
   const today = startOfDay(now);
 
   // Group events by date
-  const eventMap = new Map<string, EyCalendarEvent[]>();
+  const eventMap = new Map<number, { date: Date; events: EyCalendarEvent[] }>();
 
   events.forEach((event) => {
     const eventDate = startOfDay(event.start);
-    const dateKey = format(eventDate, "yyyy-MM-dd");
+    const dateKey = eventDate.getTime();
 
     if (!eventMap.has(dateKey)) {
-      eventMap.set(dateKey, []);
+      eventMap.set(dateKey, {
+        date: eventDate,
+        events: [],
+      });
     }
-    eventMap.get(dateKey)!.push(event);
+    eventMap.get(dateKey)?.events.push(event);
   });
 
   // Convert to array and sort
-  const groupedEvents: EventsByDate[] = Array.from(eventMap.entries())
-    .map(([dateKey, dayEvents]) => {
-      const date = new Date(dateKey);
-
+  const groupedEvents: EventsByDate[] = Array.from(eventMap.values())
+    .map(({ date, events: dayEvents }) => {
       return {
         date,
-        events: dayEvents.sort((a, b) => a.start.getTime() - b.start.getTime()),
+        events: sortEventsByStartTime(dayEvents),
         isToday: isSameDay(date, today),
         isPast: date < today,
       };
@@ -74,33 +83,35 @@ function groupEventsByDate(events: EyCalendarEvent[]): EventsByDate[] {
  * Planning view
  */
 export function PlanningView({ className = "" }: PlanningViewProps) {
-  const { state: viewState } = useView();
   const { state: eventsState } = useEvents();
   const { options } = useOptions();
+  const { callbacks } = useCallbacks();
+  const highlightToday = options.highlightToday !== false;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const todayRef = useRef<HTMLDivElement>(null);
 
   // Extract from states
-  const { currentDate } = viewState;
+  const currentDate = useViewCurrentDate();
   const { events } = eventsState;
+  const { viewInfo } = useTimeCalculations();
 
   // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const getClass = options.getClass;
 
   // Get labels, components, and locale from context options
   // Labels are automatically deduced from locale if not provided
-  const labels = useEyCalendarLabels(options.labels, options.locale);
-  const Components = useEyCalendarComponents(options.components);
+  const labels = options.labels;
+  const Components = options.components;
   const locale = options.locale;
 
   // Group events by date
+  const visibleEvents = useMemo(
+    () => getEventsInDateRange(events, viewInfo.startDate, viewInfo.endDate),
+    [events, viewInfo.startDate, viewInfo.endDate]
+  );
   const eventsByDate = useMemo(() => {
-    return groupEventsByDate(events);
-  }, [events]);
+    return groupEventsByDate(visibleEvents);
+  }, [visibleEvents]);
 
   // Scroll helper function
   const scrollToToday = useCallback(() => {
@@ -148,7 +159,7 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
       const dateStr = format(date, "d MMMM yyyy", { locale });
 
       let status = "";
-      if (isToday) {
+      if (highlightToday && isToday) {
         status = ` - ${labels.planningToday}`;
       } else if (isPast) {
         status = ` - ${labels.planningPast}`;
@@ -156,7 +167,7 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
 
       return `${dayName.charAt(0).toUpperCase() + dayName.slice(1)} ${dateStr}${status}`;
     },
-    [labels, locale]
+    [highlightToday, labels, locale]
   );
 
   return (
@@ -179,7 +190,7 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
                 ref={dayGroup.isToday ? todayRef : undefined}
                 className={getClass("planningDateHeader")}
                 data-eycalendar-date-header=""
-                data-today={dayGroup.isToday ? "true" : undefined}
+                data-today={highlightToday && dayGroup.isToday ? "true" : undefined}
                 data-past={dayGroup.isPast ? "true" : undefined}
               >
                 <h3 className={getClass("planningDateHeaderTitle")}>
@@ -204,6 +215,7 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
                       Components={Components}
                       getClass={getClass}
                       locale={locale}
+                      onEventClick={callbacks?.onEventClick}
                     />
                   ))
                 )}
@@ -235,15 +247,40 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
 interface EventCardProps {
   event: EyCalendarEvent;
   isPast: boolean;
-  labels: ReturnType<typeof useEyCalendarLabels>;
-  Components: ReturnType<typeof useEyCalendarComponents>;
-  getClass: ReturnType<typeof useEyCalendarClasses>;
+  labels: EyCalendarLabels;
+  Components: Required<EyCalendarComponents>;
+  getClass: GetEyCalendarClass;
   locale?: Locale;
+  onEventClick?: (event: EyCalendarEvent, e: EyCalendarActivationEvent) => void;
 }
 
-function EventCard({ event, isPast, labels, Components, getClass, locale }: EventCardProps) {
+function EventCard({
+  event,
+  isPast,
+  labels,
+  Components,
+  getClass,
+  locale,
+  onEventClick,
+}: EventCardProps) {
   const startTime = formatTime(event.start, locale);
   const duration = formatDuration(event.start, event.end);
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      onEventClick?.(event, e);
+    },
+    [event, onEventClick]
+  );
+
+  const handleKeyActivate = useCallback(
+    (e: React.KeyboardEvent) => {
+      onEventClick?.(event, e);
+    },
+    [event, onEventClick]
+  );
+
+  const handleKeyDown = useEventKeyboardInteractions(event, handleKeyActivate);
 
   return (
     <div
@@ -252,6 +289,11 @@ function EventCard({ event, isPast, labels, Components, getClass, locale }: Even
         borderLeftWidth: "4px",
         borderLeftColor: event.color || event.backgroundColor || "#3b82f6",
       }}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="article"
+      tabIndex={0}
+      aria-label={`${labels.ariaEvent(event.title)}, ${formatTime(event.start, locale)} - ${formatTime(event.end, locale)}${event.isAllDay ? `, ${labels.allDay}` : ""}${isPast ? `, ${labels.past}` : ""}`}
       data-eycalendar-event-card=""
       data-event-id={event.id}
       data-past={isPast ? "true" : undefined}

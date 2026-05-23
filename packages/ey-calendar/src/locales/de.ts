@@ -48,6 +48,12 @@ export const deLabels: EyCalendarLabels = {
   // General
   noEvents: "Keine Termine",
   viewHeadStatic: "Term.",
+  ariaCalendar: "Kalender",
+  ariaCalendarToolbar: "Kalender-Werkzeugleiste",
+  ariaEvent: (title: string) => `Termin: ${title}`,
+  ariaMoreEvents: (count: number) => `Weitere ${count} Termine anzeigen`,
+  ariaViewAnnouncement: (viewLabel: string, currentLabel: string, eventCount: number) =>
+    `${viewLabel}. ${currentLabel}. ${eventCount === 0 ? "Keine Termine" : `${eventCount} Termin${eventCount > 1 ? "e" : ""}`}`,
 
   // Navigation
   navNextMonth: "Nächster Monat",

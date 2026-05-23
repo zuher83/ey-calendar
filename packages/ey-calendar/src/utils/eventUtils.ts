@@ -125,27 +125,6 @@ export function getEventColor(event: EyCalendarEvent): string {
 }
 
 /**
- * Converts hex color to Tailwind classes for colored dots
- */
-export function getEventDotClasses(color: string): string {
-  // Mapping common colors to Tailwind classes
-  const colorMap: Record<string, string> = {
-    "#3b82f6": "bg-blue-500",
-    "#10b981": "bg-emerald-500",
-    "#f59e0b": "bg-amber-500",
-    "#8b5cf6": "bg-violet-500",
-    "#ef4444": "bg-red-500",
-    "#6366f1": "bg-indigo-500",
-    "#06b6d4": "bg-cyan-500",
-    "#84cc16": "bg-lime-500",
-    "#f97316": "bg-orange-500",
-    "#ec4899": "bg-pink-500",
-  };
-
-  return colorMap[color] || "bg-gray-400";
-}
-
-/**
  * Determines the optimum text color for a given background
  */
 export function getOptimalTextColor(backgroundColor: string): string {
@@ -573,9 +552,9 @@ export function isMultiDayEvent(event: EyCalendarEvent): boolean {
 export interface EventSegment {
   /** Original event reference */
   event: EyCalendarEvent;
-  /** Column index where segment starts (0-6) */
+  /** Column index where segment starts in the visible week row */
   startCol: number;
-  /** Column index where segment ends inclusive (0-6) */
+  /** Column index where segment ends inclusive in the visible week row */
   endCol: number;
   /** Span width (endCol - startCol + 1) */
   span: number;
@@ -627,7 +606,7 @@ export function getEventsForWeek(
  * Returns segments with their position (startCol, endCol) and stacking row
  *
  * @param events - Events that intersect with this week
- * @param weekDays - Array of 7 dates for the week
+ * @param weekDays - Array of visible dates for the week row
  * @param maxRows - Maximum number of event rows to show (default 3)
  */
 export function calculateEventSegments(
@@ -635,12 +614,14 @@ export function calculateEventSegments(
   weekDays: Date[],
   maxRows: number = 3
 ): EventSegment[] {
-  if (events.length === 0 || weekDays.length !== 7) {
+  const visibleDayCount = weekDays.length;
+
+  if (events.length === 0 || visibleDayCount === 0) {
     return [];
   }
 
   const weekStart = weekDays[0];
-  const weekEnd = weekDays[6];
+  const weekEnd = weekDays[visibleDayCount - 1];
   const weekStartTime = new Date(
     weekStart.getFullYear(),
     weekStart.getMonth(),
@@ -678,7 +659,9 @@ export function calculateEventSegments(
 
   const segments: EventSegment[] = [];
   // Track which columns are occupied at each row level
-  const occupiedCells: boolean[][] = Array.from({ length: maxRows }, () => Array(7).fill(false));
+  const occupiedCells: boolean[][] = Array.from({ length: maxRows }, () =>
+    Array(visibleDayCount).fill(false)
+  );
 
   for (const event of sortedEvents) {
     // Calculate start column (clamped to week bounds)
@@ -686,7 +669,7 @@ export function calculateEventSegments(
     const eventStartTime = event.start.getTime();
     if (eventStartTime > weekStartTime) {
       // Find which day the event starts on
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < visibleDayCount; i++) {
         const dayStart = new Date(
           weekDays[i].getFullYear(),
           weekDays[i].getMonth(),
@@ -701,11 +684,11 @@ export function calculateEventSegments(
     }
 
     // Calculate end column (clamped to week bounds)
-    let endCol = 6;
+    let endCol = visibleDayCount - 1;
     const eventEndTime = event.end.getTime();
     if (eventEndTime < weekEndTime) {
       // Find which day the event ends on
-      for (let i = 6; i >= 0; i--) {
+      for (let i = visibleDayCount - 1; i >= 0; i--) {
         const dayStart = new Date(
           weekDays[i].getFullYear(),
           weekDays[i].getMonth(),

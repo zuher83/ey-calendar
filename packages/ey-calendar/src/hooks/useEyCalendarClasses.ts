@@ -36,6 +36,8 @@ export interface UseEyCalendarClassesOptions {
   classNames?: EyCalendarClassNames;
 }
 
+const EMPTY_CLASS_NAMES: EyCalendarClassNames = {};
+
 /**
  * Function returned by the hook to get merged classes for a key
  */
@@ -74,7 +76,7 @@ export type GetEyCalendarClass = (key: EyCalendarClassKey) => string;
 export function useEyCalendarClasses(
   options: UseEyCalendarClassesOptions = {}
 ): GetEyCalendarClass {
-  const { theme, unstyled = false, classNames = {} } = options;
+  const { theme, unstyled = false, classNames = EMPTY_CLASS_NAMES } = options;
 
   // Resolve the active theme (memoized)
   const activeTheme = useMemo(() => {

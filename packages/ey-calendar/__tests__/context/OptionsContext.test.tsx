@@ -20,6 +20,7 @@ describe("OptionsContext", () => {
       });
 
       expect(result.current.options).toBeDefined();
+      expect(typeof result.current.options.getClass).toBe("function");
       expect(result.current.options.unstyled).toBe(false);
       expect(result.current.options.autoHeight).toBe(false);
       expect(result.current.options.showWeekNumbers).toBe(false);
@@ -107,6 +108,7 @@ describe("OptionsContext", () => {
       });
 
       expect(result.current.options.classNames).toEqual(classNames);
+      expect(result.current.options.getClass("root")).toContain("custom-root");
     });
   });
 

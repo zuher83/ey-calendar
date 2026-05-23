@@ -3,12 +3,22 @@ import React from "react";
 import { renderHook } from "@testing-library/react";
 import { EyCalendarProvider } from "../../src/context/CompositeEyCalendarContext";
 import { useTimeCalculations } from "../../src/hooks/useTimeCalculations";
+import type { EyCalendarOptions, ViewMode } from "../../src/types";
 
 describe("useTimeCalculations", () => {
   // Wrapper for Provider
-  const createWrapper = (initialDate: Date = new Date(2024, 0, 15)) => {
+  const createWrapper = (
+    initialDate: Date = new Date(2024, 0, 15),
+    options: Partial<EyCalendarOptions> = {},
+    initialView: ViewMode = "week"
+  ) => {
     const Wrapper = ({ children }: { children: React.ReactNode }) => (
-      <EyCalendarProvider initialEvents={[]} initialDate={initialDate}>
+      <EyCalendarProvider
+        initialEvents={[]}
+        initialDate={initialDate}
+        initialView={initialView}
+        options={options}
+      >
         {children}
       </EyCalendarProvider>
     );
@@ -72,6 +82,32 @@ describe("useTimeCalculations", () => {
         expect(visibleDays[6].getDay()).toBe(0); // Sunday
       }
     });
+
+    it("omits weekends when showWeekends is false", () => {
+      const testDate = new Date(2024, 0, 17); // Wednesday
+      const { result } = renderHook(() => useTimeCalculations(), {
+        wrapper: createWrapper(testDate, { showWeekends: false }, "week"),
+      });
+
+      const { visibleDays } = result.current.viewInfo;
+
+      expect(visibleDays).toHaveLength(5);
+      expect(visibleDays[0]?.getDay()).toBe(1);
+      expect(visibleDays[4]?.getDay()).toBe(5);
+      expect(visibleDays.every((day) => day.getDay() >= 1 && day.getDay() <= 5)).toBe(true);
+    });
+  });
+
+  describe("month grid", () => {
+    it("builds a business-week month grid when showWeekends is false", () => {
+      const { result } = renderHook(() => useTimeCalculations(), {
+        wrapper: createWrapper(new Date(2024, 0, 15), { showWeekends: false }, "month"),
+      });
+
+      expect(result.current.viewInfo.visibleDays).toHaveLength(25);
+      expect(result.current.monthGrid?.weeks).toHaveLength(5);
+      expect(result.current.monthGrid?.weeks.every((week) => week.days.length === 5)).toBe(true);
+    });
   });
 
   describe("timeSlots", () => {
@@ -107,6 +143,55 @@ describe("useTimeCalculations", () => {
       for (let i = 1; i < slots.length; i++) {
         expect(slots[i].start.getTime()).toBeGreaterThanOrEqual(slots[i - 1].start.getTime());
       }
+    });
+
+    it("uses custom timeSlots configuration in week/day calculations", () => {
+      const { result } = renderHook(() => useTimeCalculations(), {
+        wrapper: createWrapper(new Date(2024, 0, 15), {
+          timeSlots: {
+            duration: 30,
+            startHour: 9,
+            endHour: 12,
+            format: "24h",
+            granularity: "half-hour",
+            showMinutes: true,
+            stepMinutes: 30,
+          },
+        }),
+      });
+
+      const lastSlot = result.current.timeSlots[result.current.timeSlots.length - 1];
+
+      expect(result.current.timeSlots).toHaveLength(42);
+      expect(result.current.timeSlots[0]?.start.getHours()).toBe(9);
+      expect(result.current.timeSlots[0]?.start.getMinutes()).toBe(0);
+      expect(lastSlot?.end.getHours()).toBe(12);
+      expect(lastSlot?.end.getMinutes()).toBe(0);
+    });
+
+    it("groups hourSlots without changing the public output", () => {
+      const { result } = renderHook(() => useTimeCalculations(), {
+        wrapper: createWrapper(new Date(2024, 0, 15), {
+          timeSlots: {
+            duration: 30,
+            startHour: 9,
+            endHour: 12,
+            format: "24h",
+            granularity: "half-hour",
+            showMinutes: true,
+            stepMinutes: 30,
+          },
+        }),
+      });
+
+      expect(result.current.hourSlots).toHaveLength(3);
+      expect(result.current.hourSlots?.[0]).toMatchObject({
+        hour: 9,
+        formattedTime: "09:00",
+      });
+      expect(result.current.hourSlots?.[0]?.slots).toHaveLength(14);
+      expect(result.current.hourSlots?.[1]?.slots).toHaveLength(14);
+      expect(result.current.hourSlots?.[2]?.slots).toHaveLength(14);
     });
   });
 
@@ -163,6 +248,7 @@ describe("useTimeCalculations", () => {
       // Objects should be the same (memoization)
       expect(firstResult.viewInfo).toBe(secondResult.viewInfo);
       expect(firstResult.timeSlots).toBe(secondResult.timeSlots);
+      expect(firstResult.hourSlots).toBe(secondResult.hourSlots);
     });
   });
 

@@ -48,6 +48,13 @@ export const frLabels: EyCalendarLabels = {
   // General
   noEvents: "Aucun événement",
   viewHeadStatic: "Évén.",
+  ariaCalendar: "Calendrier",
+  ariaCalendarToolbar: "Barre d'outils du calendrier",
+  ariaEvent: (title: string) => `Événement : ${title}`,
+  ariaMoreEvents: (count: number) =>
+    `Afficher ${count} événement${count > 1 ? "s" : ""} supplémentaire${count > 1 ? "s" : ""}`,
+  ariaViewAnnouncement: (viewLabel: string, currentLabel: string, eventCount: number) =>
+    `${viewLabel}. ${currentLabel}. ${eventCount === 0 ? "Aucun événement" : `${eventCount} événement${eventCount > 1 ? "s" : ""}`}`,
 
   // Navigation
   navNextMonth: "Mois suivant",

@@ -27,6 +27,19 @@ describe("DayView", () => {
       const dayView = document.querySelector("[data-eycalendar-day-view]");
       expect(dayView).toHaveClass("custom-day-class");
     });
+
+    it("does not render the current time line when showToday is false", () => {
+      const today = new Date();
+
+      renderWithProvider(<DayView />, {
+        initialDate: today,
+        initialView: "day",
+        options: { showToday: false },
+      });
+
+      const currentTimeLine = document.querySelector("[data-eycalendar-current-time]");
+      expect(currentTimeLine).not.toBeInTheDocument();
+    });
   });
 
   describe("Event display", () => {

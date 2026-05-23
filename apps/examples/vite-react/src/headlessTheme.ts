@@ -1,0 +1,26 @@
+import type { EyCalendarClassNames } from "@emoory/ey-calendar";
+
+export const headlessClassNames: EyCalendarClassNames = {
+  root: "vite-headless-root",
+  toolbar: "vite-headless-toolbar",
+  toolbarTitle: "vite-headless-title",
+  toolbarViewSelector: "vite-headless-view-selector",
+  button: "vite-headless-button",
+  buttonNav: "vite-headless-button",
+  buttonToday: "vite-headless-button",
+  buttonView: "vite-headless-button",
+  buttonViewActive: "vite-headless-button-active",
+  planningView: "vite-headless-planning",
+  planningScrollContainer: "vite-headless-scroll",
+  planningContent: "vite-headless-content",
+  planningDateGroup: "vite-headless-group",
+  planningDateHeader: "vite-headless-group-header",
+  planningDateHeaderTitle: "vite-headless-group-title",
+  planningDateHeaderSubtitle: "vite-headless-group-subtitle",
+  planningEventsList: "vite-headless-event-list",
+  eventCard: "vite-headless-event-card",
+  eventCardContent: "vite-headless-event-card-content",
+  eventCardTimeText: "vite-headless-event-time",
+  eventCardTitle: "vite-headless-event-title",
+  eventCardDescription: "vite-headless-event-description",
+};

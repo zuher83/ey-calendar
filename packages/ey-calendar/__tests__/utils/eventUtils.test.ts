@@ -1,6 +1,7 @@
 // Tests for eventUtils
 import type { EyCalendarEvent } from "../../src/types";
 import {
+  calculateEventSegments,
   doEventsOverlap,
   getEventDisplayTitle,
   getEventsForDate,
@@ -238,6 +239,27 @@ describe("eventUtils", () => {
       groups.forEach((group) => {
         expect(group).toHaveLength(1);
       });
+    });
+  });
+
+  describe("calculateEventSegments", () => {
+    it("supports business-week rows with five visible days", () => {
+      const workWeek = [15, 16, 17, 18, 19].map((day) => new Date(2024, 0, day));
+      const event = createEvent(
+        "business-week-segment",
+        new Date(2024, 0, 18, 9, 0),
+        new Date(2024, 0, 22, 17, 0),
+        "Spans hidden weekend"
+      );
+
+      const [segment] = calculateEventSegments([event], workWeek, 3);
+
+      expect(segment).toBeDefined();
+      expect(segment?.startCol).toBe(3);
+      expect(segment?.endCol).toBe(4);
+      expect(segment?.span).toBe(2);
+      expect(segment?.isStart).toBe(true);
+      expect(segment?.isEnd).toBe(false);
     });
   });
 

@@ -194,9 +194,9 @@ describe("PlanningView", () => {
         }),
         createMockEvent({
           id: "week-2",
-          title: "Next Week",
-          start: new Date(2024, 0, 20, 10, 0),
-          end: new Date(2024, 0, 20, 11, 0),
+          title: "Outside Visible Range",
+          start: new Date(2024, 0, 22, 10, 0),
+          end: new Date(2024, 0, 22, 11, 0),
         }),
       ];
 
@@ -206,9 +206,31 @@ describe("PlanningView", () => {
         initialView: "planning",
       });
 
-      // Both should be visible in planning view
       expect(screen.getByText("This Week")).toBeInTheDocument();
-      expect(screen.getByText("Next Week")).toBeInTheDocument();
+      expect(screen.queryByText("Outside Visible Range")).not.toBeInTheDocument();
+    });
+
+    it("does not mark today when highlightToday is false", () => {
+      const today = new Date();
+      const event = createMockEvent({
+        id: "today-event",
+        title: "Today Event",
+        start: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 10, 0),
+        end: new Date(today.getFullYear(), today.getMonth(), today.getDate(), 11, 0),
+      });
+
+      renderWithProvider(<PlanningView />, {
+        initialEvents: [event],
+        initialDate: today,
+        initialView: "planning",
+        options: { highlightToday: false },
+      });
+
+      const todayHeader = document.querySelector('[data-today="true"]');
+      expect(todayHeader).not.toBeInTheDocument();
+
+      const dateHeaderTitle = document.querySelector("[data-eycalendar-date-header] h3");
+      expect(dateHeaderTitle?.textContent).not.toContain("Today");
     });
   });
 

@@ -1,7 +1,9 @@
 // Tests for MonthView component
 import React from "react";
-import { screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { EyCalendar } from "../../../src/components/EyCalendar";
 import { MonthView } from "../../../src/components/views/MonthView";
+import { EyCalendarProvider } from "../../../src/context/CompositeEyCalendarContext";
 import { createMockEvent, renderWithProvider } from "../../setup/testUtils";
 
 describe("MonthView", () => {
@@ -19,6 +21,16 @@ describe("MonthView", () => {
       // Should have headers for Mon, Tue, Wed, Thu, Fri, Sat, Sun
       const dayHeaders = document.querySelectorAll("[data-eycalendar-weekday-header]");
       expect(dayHeaders.length).toBe(7);
+    });
+
+    it("renders 5 day headers when showWeekends is false", () => {
+      renderWithProvider(<MonthView />, {
+        initialView: "month",
+        options: { showWeekends: false },
+      });
+
+      const dayHeaders = document.querySelectorAll("[data-eycalendar-weekday-header]");
+      expect(dayHeaders.length).toBe(5);
     });
 
     it("applies custom className", () => {
@@ -40,6 +52,19 @@ describe("MonthView", () => {
       const dayCells = document.querySelectorAll("[data-eycalendar-day-cell]");
       expect(dayCells.length).toBeGreaterThanOrEqual(28);
       expect(dayCells.length).toBeLessThanOrEqual(42);
+    });
+
+    it("renders a 5-day month grid when showWeekends is false", () => {
+      const january2024 = new Date(2024, 0, 15);
+
+      renderWithProvider(<MonthView />, {
+        initialDate: january2024,
+        initialView: "month",
+        options: { showWeekends: false },
+      });
+
+      const dayCells = document.querySelectorAll("[data-eycalendar-day-cell]");
+      expect(dayCells.length).toBe(25);
     });
   });
 
@@ -207,6 +232,19 @@ describe("MonthView", () => {
       const todayCell = document.querySelector('[data-today="true"]');
       expect(todayCell).toBeInTheDocument();
     });
+
+    it("does not mark the current day when highlightToday is false", () => {
+      const today = new Date();
+
+      renderWithProvider(<MonthView />, {
+        initialDate: today,
+        initialView: "month",
+        options: { highlightToday: false },
+      });
+
+      const todayCell = document.querySelector('[data-today="true"]');
+      expect(todayCell).not.toBeInTheDocument();
+    });
   });
 
   describe("Previous/Next month days", () => {
@@ -277,6 +315,63 @@ describe("MonthView", () => {
       dayCells.forEach((cell) => {
         expect(cell).toBeInTheDocument();
       });
+    });
+
+    it("exposes grid semantics for the month layout", () => {
+      renderWithProvider(<MonthView />, { initialView: "month" });
+
+      const monthGrid = document.querySelector("[data-eycalendar-month-grid]");
+      expect(monthGrid).toHaveAttribute("role", "grid");
+    });
+
+    it("supports arrow-key navigation between month day triggers", () => {
+      renderWithProvider(<MonthView />, { initialView: "month" });
+
+      const dayTriggers = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-eycalendar-month-day-trigger]")
+      );
+
+      dayTriggers[0]?.focus();
+      fireEvent.keyDown(dayTriggers[0] as HTMLElement, { key: "ArrowRight" });
+      expect(dayTriggers[1]).toHaveFocus();
+
+      fireEvent.keyDown(dayTriggers[1] as HTMLElement, { key: "ArrowDown" });
+      expect(dayTriggers[8]).toHaveFocus();
+    });
+
+    it("keeps month grid keyboard navigation scoped to the current calendar instance", () => {
+      render(
+        <>
+          <div data-eycalendar-root="">
+            <EyCalendarProvider
+              initialEvents={[]}
+              initialDate={new Date(2024, 0, 15)}
+              initialView="month"
+            >
+              <MonthView />
+            </EyCalendarProvider>
+          </div>
+          <div data-eycalendar-root="">
+            <EyCalendarProvider
+              initialEvents={[]}
+              initialDate={new Date(2024, 1, 15)}
+              initialView="month"
+            >
+              <MonthView />
+            </EyCalendarProvider>
+          </div>
+        </>
+      );
+
+      const calendarRoots = document.querySelectorAll("[data-eycalendar-root]");
+      const firstTriggers = within(calendarRoots[0] as HTMLElement).getAllByRole("button");
+      const secondTriggers = within(calendarRoots[1] as HTMLElement).getAllByRole("button");
+
+      (firstTriggers[0] as HTMLElement).focus();
+      fireEvent.keyDown(firstTriggers[0] as HTMLElement, { key: "End" });
+
+      expect(firstTriggers[firstTriggers.length - 1]).toHaveFocus();
+      expect(secondTriggers[secondTriggers.length - 1]).not.toHaveFocus();
     });
 
     it("events are keyboard accessible", () => {
@@ -353,6 +448,92 @@ describe("MonthView", () => {
       dayCells.forEach((cell) => {
         expect(cell).toBeInTheDocument();
       });
+    });
+
+    it("passes only hidden single-day events to onShowMoreClick", () => {
+      const january15 = new Date(2024, 0, 15);
+      const onShowMoreClick = jest.fn();
+
+      const events = [
+        createMockEvent({
+          id: "single-1",
+          title: "Single 1",
+          start: new Date(2024, 0, 15, 9, 0),
+          end: new Date(2024, 0, 15, 10, 0),
+        }),
+        createMockEvent({
+          id: "all-day",
+          title: "All Day",
+          start: new Date(2024, 0, 15, 0, 0),
+          end: new Date(2024, 0, 15, 23, 59),
+          isAllDay: true,
+        }),
+        createMockEvent({
+          id: "single-2",
+          title: "Single 2",
+          start: new Date(2024, 0, 15, 10, 0),
+          end: new Date(2024, 0, 15, 11, 0),
+        }),
+        createMockEvent({
+          id: "multi-day",
+          title: "Multi Day",
+          start: new Date(2024, 0, 15, 0, 0),
+          end: new Date(2024, 0, 17, 23, 59),
+        }),
+        createMockEvent({
+          id: "single-3",
+          title: "Single 3",
+          start: new Date(2024, 0, 15, 11, 0),
+          end: new Date(2024, 0, 15, 12, 0),
+        }),
+        createMockEvent({
+          id: "single-4",
+          title: "Single 4",
+          start: new Date(2024, 0, 15, 12, 0),
+          end: new Date(2024, 0, 15, 13, 0),
+        }),
+        createMockEvent({
+          id: "single-5",
+          title: "Single 5",
+          start: new Date(2024, 0, 15, 13, 0),
+          end: new Date(2024, 0, 15, 14, 0),
+        }),
+      ];
+
+      render(
+        <EyCalendar
+          events={events}
+          defaultDate={january15}
+          defaultView="month"
+          onShowMoreClick={onShowMoreClick}
+        />
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: /show 4 more events/i }));
+
+      expect(onShowMoreClick).toHaveBeenCalledTimes(1);
+
+      const [, hiddenEvents, allEvents] = onShowMoreClick.mock.calls[0] as [
+        Date,
+        Array<{ id: string }>,
+        Array<{ id: string }>,
+      ];
+
+      expect(hiddenEvents.map((event) => event.id)).toEqual([
+        "single-2",
+        "single-3",
+        "single-4",
+        "single-5",
+      ]);
+      expect(allEvents.map((event) => event.id)).toEqual([
+        "all-day",
+        "multi-day",
+        "single-1",
+        "single-2",
+        "single-3",
+        "single-4",
+        "single-5",
+      ]);
     });
   });
 });

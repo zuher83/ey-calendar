@@ -37,10 +37,7 @@ export const DEFAULT_TIME_SLOT_CONFIG: TimeSlotConfig = {
 export const DEFAULT_OPTIONS: EyCalendarOptions = {
   // Default view
   defaultView: "week",
-  defaultDate: new Date(),
 
-  // View configuration
-  views: undefined,
   timeSlots: DEFAULT_TIME_SLOT_CONFIG,
 
   // Display
@@ -48,7 +45,6 @@ export const DEFAULT_OPTIONS: EyCalendarOptions = {
   showToday: true,
   highlightToday: true,
   showWeekNumbers: false,
-  showResourceHeaders: true,
   showToolbar: true,
 
   // Layout
@@ -70,8 +66,6 @@ export const DEFAULT_OPTIONS: EyCalendarOptions = {
   maxEventsPerSlot: undefined,
 
   // Performance
-  virtualizeThreshold: 50,
-  overscan: 5,
   debounceMs: 100,
 
   // Internationalization

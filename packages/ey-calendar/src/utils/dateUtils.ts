@@ -1,11 +1,4 @@
-import {
-  differenceInHours,
-  differenceInMinutes,
-  format,
-  isAfter,
-  isBefore,
-  type Locale,
-} from "date-fns";
+import { differenceInMinutes, format, isAfter, isBefore, type Locale } from "date-fns";
 
 // ============================================================================
 // TIME CALCULATIONS
@@ -29,8 +22,15 @@ export function formatTime(date: Date, locale?: Locale, timeFormat: "12h" | "24h
  * Formats the duration of an event
  */
 export function formatDuration(start: Date, end: Date): string {
-  const hours = differenceInHours(end, start);
-  const minutes = differenceInMinutes(end, start) % 60;
+  const normalizedStart = new Date(start);
+  normalizedStart.setSeconds(0, 0);
+
+  const normalizedEnd = new Date(end);
+  normalizedEnd.setSeconds(0, 0);
+
+  const totalMinutes = Math.max(0, differenceInMinutes(normalizedEnd, normalizedStart));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
 
   if (hours === 0) {
     return `${minutes}min`;

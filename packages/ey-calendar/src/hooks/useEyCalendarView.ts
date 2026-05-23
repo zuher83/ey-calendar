@@ -6,21 +6,20 @@ import {
   addDays,
   addMonths,
   addWeeks,
-  endOfDay,
-  endOfMonth,
-  endOfWeek,
   format,
   isSameDay,
   isSameMonth,
   isSameWeek,
-  startOfDay,
   startOfMonth,
   startOfWeek,
+  type Locale,
 } from "date-fns";
 import { useEvents } from "../context/EventsContext";
 import { useOptions } from "../context/OptionsContext";
-import { useView } from "../context/ViewContext";
+import { useViewActions, useViewCurrentDate, useViewCurrentView } from "../context/ViewContext";
 import type { EyCalendarEvent, ViewMode } from "../types";
+import { getEventsForDate, getEventsInDateRange } from "../utils/eventUtils";
+import { getVisibleDateRange } from "../utils/viewRangeUtils";
 import { useEyCalendarLabels } from "./useEyCalendarLabels";
 
 /**
@@ -87,91 +86,115 @@ interface CalendarViewResult {
   };
 }
 
-/**
- * Hook pour gérer la navigation entre vues et l'état de la vue courante
- */
-export function useEyCalendarView(): CalendarViewResult {
-  const { state: viewState, setViewMode, setCurrentDate } = useView();
-  const { state: eventsState } = useEvents();
-  const { currentView, currentDate } = viewState;
-  const { events } = eventsState;
+type VisibleRange = CalendarViewResult["visibleRange"];
+type CalendarViewNavigationResult = Omit<CalendarViewResult, "stats">;
 
-  // Get options from OptionsContext (labels, locale)
+interface CalendarViewState {
+  currentView: ViewMode;
+  currentDate: Date;
+  visibleRange: VisibleRange;
+  events: EyCalendarEvent[];
+  labels: ReturnType<typeof useEyCalendarLabels>;
+  locale?: Locale;
+  setViewMode: (view: ViewMode) => void;
+  setCurrentDate: (date: Date) => void;
+}
+
+function countConflictingEvents(events: EyCalendarEvent[]): number {
+  if (events.length < 2) {
+    return 0;
+  }
+
+  const sortedEvents = [...events].sort((leftEvent, rightEvent) => {
+    const startDiff = leftEvent.start.getTime() - rightEvent.start.getTime();
+
+    if (startDiff !== 0) {
+      return startDiff;
+    }
+
+    return leftEvent.end.getTime() - rightEvent.end.getTime();
+  });
+
+  let conflictingCount = 0;
+  let currentGroupSize = 0;
+  let currentGroupEnd = Number.NEGATIVE_INFINITY;
+
+  for (const event of sortedEvents) {
+    const eventStart = event.start.getTime();
+    const eventEnd = event.end.getTime();
+
+    if (currentGroupSize === 0) {
+      currentGroupSize = 1;
+      currentGroupEnd = eventEnd;
+      continue;
+    }
+
+    if (eventStart < currentGroupEnd) {
+      currentGroupSize += 1;
+      currentGroupEnd = Math.max(currentGroupEnd, eventEnd);
+      continue;
+    }
+
+    if (currentGroupSize > 1) {
+      conflictingCount += currentGroupSize;
+    }
+
+    currentGroupSize = 1;
+    currentGroupEnd = eventEnd;
+  }
+
+  if (currentGroupSize > 1) {
+    conflictingCount += currentGroupSize;
+  }
+
+  return conflictingCount;
+}
+
+function useCalendarViewState(): CalendarViewState {
+  const currentView = useViewCurrentView();
+  const currentDate = useViewCurrentDate();
+  const { setViewMode, setCurrentDate } = useViewActions();
+  const {
+    state: { events },
+  } = useEvents();
   const { options } = useOptions();
   const labels = useEyCalendarLabels(options.labels, options.locale);
   const locale = options.locale;
+  const showWeekends = options.showWeekends !== false;
 
-  // Calcul de la plage visible selon la vue
   const visibleRange = useMemo(() => {
-    let start: Date;
-    let end: Date;
-    let days: Date[] = [];
+    const range = getVisibleDateRange(currentDate, currentView, showWeekends);
 
-    switch (currentView) {
-      case "month": {
-        start = startOfMonth(currentDate);
-        end = endOfMonth(currentDate);
+    return { start: range.start, end: range.end, days: range.days };
+  }, [currentDate, currentView, showWeekends]);
 
-        // Ajouter les jours du mois précédent et suivant pour compléter la grille
-        const monthStart = startOfWeek(start, { weekStartsOn: 1 }); // Lundi
-        const monthEnd = endOfWeek(end, { weekStartsOn: 1 });
+  return {
+    currentView,
+    currentDate,
+    visibleRange,
+    events,
+    labels,
+    locale,
+    setViewMode,
+    setCurrentDate,
+  };
+}
 
-        start = monthStart;
-        end = monthEnd;
+function useCalendarViewNavigation(state: CalendarViewState): CalendarViewNavigationResult {
+  const {
+    currentView,
+    currentDate,
+    events,
+    labels,
+    locale,
+    visibleRange,
+    setViewMode,
+    setCurrentDate,
+  } = state;
 
-        // Générer tous les jours de la grille mensuelle
-        let currentDay = start;
-        while (currentDay <= end) {
-          days.push(new Date(currentDay));
-          currentDay = addDays(currentDay, 1);
-        }
-        break;
-      }
-
-      case "week": {
-        start = startOfWeek(currentDate, { weekStartsOn: 1 }); // Lundi
-        end = endOfWeek(currentDate, { weekStartsOn: 1 }); // Dimanche
-
-        // Générer les 7 jours de la semaine
-        for (let i = 0; i < 7; i++) {
-          days.push(addDays(start, i));
-        }
-        break;
-      }
-
-      case "day": {
-        start = startOfDay(currentDate);
-        end = endOfDay(currentDate);
-        days = [new Date(currentDate)];
-        break;
-      }
-
-      case "planning": {
-        // Vue planning : affiche généralement une semaine ou un mois
-        start = startOfWeek(currentDate, { weekStartsOn: 1 });
-        end = endOfWeek(currentDate, { weekStartsOn: 1 });
-
-        for (let i = 0; i < 7; i++) {
-          days.push(addDays(start, i));
-        }
-        break;
-      }
-
-      default: {
-        start = startOfDay(currentDate);
-        end = endOfDay(currentDate);
-        days = [new Date(currentDate)];
-      }
-    }
-
-    return { start, end, days };
-  }, [currentView, currentDate]);
-
-  // Informations de navigation
   const navigation = useMemo((): NavigationInfo => {
-    // Navigation limits can be configured
-    const canGoNext = true; // No limit to the future
-    const canGoPrevious = true; // No limit to the past
+    const canGoNext = true;
+    const canGoPrevious = true;
 
     let nextLabel = "";
     let previousLabel = "";
@@ -211,39 +234,8 @@ export function useEyCalendarView(): CalendarViewResult {
       currentLabel,
       todayLabel: labels.navToday,
     };
-  }, [currentView, currentDate, visibleRange, labels, locale]);
+  }, [currentDate, currentView, labels, locale, visibleRange.end, visibleRange.start]);
 
-  // Statistiques de la vue courante
-  const stats = useMemo((): ViewStats => {
-    const visibleEvents = events.filter((event) => {
-      return event.start <= visibleRange.end && event.end >= visibleRange.start;
-    });
-
-    const allDayEvents = visibleEvents.filter((event) => event.isAllDay).length;
-    const timedEvents = visibleEvents.length - allDayEvents;
-
-    // Calculer les événements en conflit (simplifié)
-    const conflictingEvents = visibleEvents.filter((event) => {
-      return visibleEvents.some(
-        (otherEvent) =>
-          otherEvent.id !== event.id && event.start < otherEvent.end && event.end > otherEvent.start
-      );
-    }).length;
-
-    const dayCount = visibleRange.days.length;
-    const averageEventsPerDay = dayCount > 0 ? visibleEvents.length / dayCount : 0;
-
-    return {
-      totalEvents: events.length,
-      visibleEvents: visibleEvents.length,
-      conflictingEvents,
-      allDayEvents,
-      timedEvents,
-      averageEventsPerDay,
-    };
-  }, [events, visibleRange]);
-
-  // Actions de navigation
   const actions = useMemo(
     () => ({
       setView: (view: ViewMode) => {
@@ -259,12 +251,10 @@ export function useEyCalendarView(): CalendarViewResult {
 
         switch (currentView) {
           case "month":
-            // Aller au 1er jour du mois suivant
             nextDate = startOfMonth(addMonths(currentDate, 1));
             break;
           case "week":
           case "planning":
-            // Aller au début de la semaine suivante
             nextDate = startOfWeek(addWeeks(currentDate, 1), { weekStartsOn: 1 });
             break;
           case "day":
@@ -282,12 +272,10 @@ export function useEyCalendarView(): CalendarViewResult {
 
         switch (currentView) {
           case "month":
-            // Aller au 1er jour du mois précédent
             previousDate = startOfMonth(addMonths(currentDate, -1));
             break;
           case "week":
           case "planning":
-            // Aller au début de la semaine précédente
             previousDate = startOfWeek(addWeeks(currentDate, -1), { weekStartsOn: 1 });
             break;
           case "day":
@@ -304,7 +292,6 @@ export function useEyCalendarView(): CalendarViewResult {
         const today = new Date();
         let normalizedDate: Date;
 
-        // Normaliser selon la vue
         switch (currentView) {
           case "month":
             normalizedDate = startOfMonth(today);
@@ -324,10 +311,9 @@ export function useEyCalendarView(): CalendarViewResult {
         setCurrentDate(date);
       },
     }),
-    [currentView, currentDate, setViewMode, setCurrentDate]
+    [currentDate, currentView, setCurrentDate, setViewMode]
   );
 
-  // Utilitaires
   const utils = useMemo(
     () => ({
       isDateVisible: (date: Date): boolean => {
@@ -353,12 +339,7 @@ export function useEyCalendarView(): CalendarViewResult {
       },
 
       getDateEvents: (date: Date): EyCalendarEvent[] => {
-        const dayStart = startOfDay(date);
-        const dayEnd = endOfDay(date);
-
-        return events.filter((event) => {
-          return event.start < dayEnd && event.end > dayStart;
-        });
+        return getEventsForDate(events, date);
       },
 
       formatViewTitle: (): string => {
@@ -376,7 +357,15 @@ export function useEyCalendarView(): CalendarViewResult {
         return labelsMap[view] || view;
       },
     }),
-    [visibleRange, currentView, currentDate, events, navigation.currentLabel, labels]
+    [
+      currentDate,
+      currentView,
+      events,
+      labels,
+      navigation.currentLabel,
+      visibleRange.end,
+      visibleRange.start,
+    ]
   );
 
   return {
@@ -384,8 +373,56 @@ export function useEyCalendarView(): CalendarViewResult {
     currentDate,
     visibleRange,
     navigation,
-    stats,
     actions,
     utils,
+  };
+}
+
+function useCalendarViewStats(events: EyCalendarEvent[], visibleRange: VisibleRange): ViewStats {
+  return useMemo((): ViewStats => {
+    const visibleEvents = getEventsInDateRange(events, visibleRange.start, visibleRange.end);
+    const allDayEvents = visibleEvents.filter((event) => event.isAllDay).length;
+    const timedEvents = visibleEvents.length - allDayEvents;
+    const conflictingEvents = countConflictingEvents(visibleEvents);
+    const dayCount = visibleRange.days.length;
+    const averageEventsPerDay = dayCount > 0 ? visibleEvents.length / dayCount : 0;
+
+    return {
+      totalEvents: events.length,
+      visibleEvents: visibleEvents.length,
+      conflictingEvents,
+      allDayEvents,
+      timedEvents,
+      averageEventsPerDay,
+    };
+  }, [events, visibleRange.days.length, visibleRange.end, visibleRange.start]);
+}
+
+export function useEyCalendarNavigation(): CalendarViewNavigationResult {
+  const state = useCalendarViewState();
+
+  return useCalendarViewNavigation(state);
+}
+
+export function useEyCalendarVisibleEventCount(): number {
+  const { events, visibleRange } = useCalendarViewState();
+
+  return useMemo(
+    () => getEventsInDateRange(events, visibleRange.start, visibleRange.end).length,
+    [events, visibleRange.end, visibleRange.start]
+  );
+}
+
+/**
+ * Hook pour gérer la navigation entre vues et l'état de la vue courante
+ */
+export function useEyCalendarView(): CalendarViewResult {
+  const state = useCalendarViewState();
+  const view = useCalendarViewNavigation(state);
+  const stats = useCalendarViewStats(state.events, state.visibleRange);
+
+  return {
+    ...view,
+    stats,
   };
 }

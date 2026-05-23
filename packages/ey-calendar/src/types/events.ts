@@ -35,7 +35,7 @@ export interface EyCalendarEvent {
   zIndex?: number;
 
   // Custom data
-  custom?: Record<string, any>;
+  custom?: Record<string, unknown>;
 }
 
 /**

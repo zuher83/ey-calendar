@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import "@emoory/ey-calendar/styles/structure.css";
+import "./calendar-theme.css";
 
 export const metadata: Metadata = {
   title: "EyCalendar - Next.js App Router Example",

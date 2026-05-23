@@ -59,6 +59,12 @@ describe("dateUtils", () => {
       const end = new Date(2024, 0, 1, 10, 1);
       expect(formatDuration(start, end)).toBe("1min");
     });
+
+    it("ignores seconds and milliseconds to stay aligned with displayed times", () => {
+      const start = new Date(2024, 0, 1, 11, 0, 59, 900);
+      const end = new Date(2024, 0, 1, 12, 30, 0, 0);
+      expect(formatDuration(start, end)).toBe("1h30");
+    });
   });
 
   describe("doDateRangesOverlap", () => {

@@ -500,10 +500,31 @@
 
 .ey-cal-day-all-day-section {
   border-bottom: 1px solid var(--ey-cal-border);
+  background-color: var(--ey-cal-background);
+}
+
+.ey-cal-day-all-day-label {
+  border-right: 1px solid var(--ey-cal-border);
+  color: var(--ey-cal-foreground-muted);
+  font-size: var(--ey-cal-font-size-xs);
+}
+
+.ey-cal-day-all-day-more {
+  color: var(--ey-cal-foreground-muted);
+  font-size: var(--ey-cal-font-size-xs);
 }
 
 .ey-cal-day-all-day-event-bar {
   box-shadow: var(--ey-cal-shadow-sm);
+  border-radius: var(--ey-cal-radius);
+  padding: 0 0.5rem;
+  font-size: var(--ey-cal-font-size-xs);
+  font-weight: 500;
+  transition: opacity var(--ey-cal-transition-fast);
+}
+
+.ey-cal-day-all-day-event-bar:hover {
+  opacity: 0.9;
 }
 
 .ey-cal-day-current-time-line-inner {
@@ -678,8 +699,23 @@
   padding: 0 0.25rem;
   font-size: var(--ey-cal-font-size-xs);
   font-weight: 500;
+  border-radius: 0;
   box-shadow: var(--ey-cal-shadow-sm);
   transition: opacity var(--ey-cal-transition-fast);
+}
+
+.ey-cal-month-event-bar[data-start="true"][data-end="true"] {
+  border-radius: var(--ey-cal-radius-sm);
+}
+
+.ey-cal-month-event-bar[data-start="true"][data-end="false"] {
+  border-top-left-radius: var(--ey-cal-radius-sm);
+  border-bottom-left-radius: var(--ey-cal-radius-sm);
+}
+
+.ey-cal-month-event-bar[data-start="false"][data-end="true"] {
+  border-top-right-radius: var(--ey-cal-radius-sm);
+  border-bottom-right-radius: var(--ey-cal-radius-sm);
 }
 
 .ey-cal-month-event-bar:hover {

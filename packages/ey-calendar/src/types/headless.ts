@@ -70,7 +70,12 @@ export type EyCalendarClassKey =
   | "dayEventsContainer"
   | "dayEventWrapper"
   | "dayAllDaySection"
+  | "dayAllDayLayout"
+  | "dayAllDayLabel"
+  | "dayAllDayContent"
+  | "dayAllDayMore"
   | "dayAllDayEventBar"
+  | "dayAllDayTitle"
   | "dayCurrentTimeLine"
   | "dayCurrentTimeLineInner"
   | "dayCurrentTimeLineDot"
@@ -238,6 +243,11 @@ export interface EyCalendarLabels {
   // General
   noEvents: string;
   viewHeadStatic: string;
+  ariaCalendar: string;
+  ariaCalendarToolbar: string;
+  ariaEvent: (title: string) => string;
+  ariaMoreEvents: (count: number) => string;
+  ariaViewAnnouncement: (viewLabel: string, currentLabel: string, eventCount: number) => string;
 
   // Navigation
   navNextMonth: string;

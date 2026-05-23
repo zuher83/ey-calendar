@@ -5,25 +5,20 @@ import { useMemo } from "react";
 import {
   addHours,
   addMinutes,
-  eachDayOfInterval,
   endOfDay,
-  endOfMonth,
-  endOfWeek,
   format,
   getDay,
-  getHours,
   isAfter,
   isBefore,
   isToday,
   isWeekend,
   startOfDay,
-  startOfMonth,
-  startOfWeek,
 } from "date-fns";
 import { DEFAULT_TIME_SLOT_CONFIG } from "../constants";
 import { useOptions } from "../context/OptionsContext";
-import { useView } from "../context/ViewContext";
+import { useViewCurrentDate, useViewCurrentView } from "../context/ViewContext";
 import type { TimeSlot } from "../types";
+import { getVisibleDateRange } from "../utils/viewRangeUtils";
 
 /**
  * Interface pour les informations de vue
@@ -86,61 +81,29 @@ interface TimeCalculationsResult {
  * Hook for all calendar time calculations
  */
 export function useTimeCalculations(): TimeCalculationsResult {
-  const { state } = useView();
-  const { currentView, currentDate } = state;
+  const currentView = useViewCurrentView();
+  const currentDate = useViewCurrentDate();
   const { options } = useOptions();
   const locale = options.locale;
+  const timeSlotConfig = options.timeSlots ?? DEFAULT_TIME_SLOT_CONFIG;
+  const showWeekends = options.showWeekends !== false;
 
   // Calculation of start and end dates according to view
   const viewInfo = useMemo((): ViewInfo => {
-    let startDate: Date;
-    let endDate: Date;
-    let visibleDays: Date[];
-
-    switch (currentView) {
-      case "month":
-        startDate = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 1 }); // Lundi
-        endDate = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 1 });
-        visibleDays = eachDayOfInterval({ start: startDate, end: endDate });
-        break;
-
-      case "week":
-        startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
-        endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
-        visibleDays = eachDayOfInterval({ start: startDate, end: endDate });
-        break;
-
-      case "day":
-        startDate = startOfDay(currentDate);
-        endDate = endOfDay(currentDate);
-        visibleDays = [currentDate];
-        break;
-
-      case "planning":
-        // Pour la vue planning, on prend la semaine courante par défaut
-        startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
-        endDate = endOfWeek(currentDate, { weekStartsOn: 1 });
-        visibleDays = eachDayOfInterval({ start: startDate, end: endDate });
-        break;
-
-      default:
-        startDate = startOfDay(currentDate);
-        endDate = endOfDay(currentDate);
-        visibleDays = [currentDate];
-    }
+    const visibleRange = getVisibleDateRange(currentDate, currentView, showWeekends);
 
     return {
-      startDate,
-      endDate,
-      totalDays: visibleDays.length,
-      visibleDays,
+      startDate: visibleRange.start,
+      endDate: visibleRange.end,
+      totalDays: visibleRange.days.length,
+      visibleDays: visibleRange.days,
     };
-  }, [currentView, currentDate]);
+  }, [currentView, currentDate, showWeekends]);
 
   // Generate time slots
   const timeSlots = useMemo((): TimeSlot[] => {
     const slots: TimeSlot[] = [];
-    const config = DEFAULT_TIME_SLOT_CONFIG;
+    const config = timeSlotConfig;
 
     // For the month view, we generate slots by day
     if (currentView === "month") {
@@ -204,17 +167,18 @@ export function useTimeCalculations(): TimeCalculationsResult {
     }
 
     return slots;
-  }, [currentView, viewInfo]);
+  }, [currentView, viewInfo, timeSlotConfig]);
 
   // Monthly grid generation
   const monthGrid = useMemo((): MonthGrid | undefined => {
     if (currentView !== "month") return undefined;
 
     const weeks: MonthGrid["weeks"] = [];
+    const daysPerWeek = showWeekends ? 7 : 5;
 
-    // Group days per week (7 days per week)
-    for (let i = 0; i < viewInfo.visibleDays.length; i += 7) {
-      const weekDays = viewInfo.visibleDays.slice(i, i + 7);
+    // Group visible days per row (7 days or 5 business days)
+    for (let i = 0; i < viewInfo.visibleDays.length; i += daysPerWeek) {
+      const weekDays = viewInfo.visibleDays.slice(i, i + daysPerWeek);
       const weekStart = weekDays[0];
 
       weeks.push({
@@ -230,34 +194,52 @@ export function useTimeCalculations(): TimeCalculationsResult {
     }
 
     return { weeks };
-  }, [currentView, viewInfo, currentDate]);
+  }, [currentView, viewInfo, currentDate, showWeekends]);
+
+  const timeSlotsByHour = useMemo((): Map<number, TimeSlot[]> | undefined => {
+    if (currentView !== "week" && currentView !== "day") return undefined;
+
+    const groupedSlots = new Map<number, TimeSlot[]>();
+
+    timeSlots.forEach((slot) => {
+      const slotHour = slot.start.getHours();
+      const existingHourSlots = groupedSlots.get(slotHour);
+
+      if (existingHourSlots) {
+        existingHourSlots.push(slot);
+        return;
+      }
+
+      groupedSlots.set(slotHour, [slot]);
+    });
+
+    return groupedSlots;
+  }, [currentView, timeSlots]);
+
+  const timeSlotStartById = useMemo(() => {
+    return new Map(timeSlots.map((slot) => [slot.id, slot.start]));
+  }, [timeSlots]);
 
   // Generate time slots for week/day
   const hourSlots = useMemo((): HourSlots[] | undefined => {
     if (currentView !== "week" && currentView !== "day") return undefined;
 
-    const config = DEFAULT_TIME_SLOT_CONFIG;
+    const config = timeSlotConfig;
     const hours: HourSlots[] = [];
 
     for (let hour = config.startHour; hour < config.endHour; hour++) {
-      const hourTimeSlots = timeSlots.filter((slot) => {
-        const slotHour = getHours(slot.start);
-
-        return slotHour === hour;
-      });
-
       hours.push({
         hour,
         formattedTime: format(
           addHours(startOfDay(new Date()), hour),
           config.format === "12h" ? "h a" : "HH:mm"
         ),
-        slots: hourTimeSlots,
+        slots: timeSlotsByHour?.get(hour) ?? [],
       });
     }
 
     return hours;
-  }, [currentView, timeSlots]);
+  }, [currentView, timeSlotConfig, timeSlotsByHour]);
 
   // Utilities
   const utils = useMemo(
@@ -277,13 +259,11 @@ export function useTimeCalculations(): TimeCalculationsResult {
       },
 
       getDateForSlot: (slotId: string) => {
-        const slot = timeSlots.find((s) => s.id === slotId);
-
-        return slot?.start;
+        return timeSlotStartById.get(slotId);
       },
 
       snapToGrid: (date: Date) => {
-        const config = DEFAULT_TIME_SLOT_CONFIG;
+        const config = timeSlotConfig;
 
         if (currentView === "month" || currentView === "planning") {
           return startOfDay(date);
@@ -297,7 +277,7 @@ export function useTimeCalculations(): TimeCalculationsResult {
         return addMinutes(dayStart, slotIndex * config.duration);
       },
     }),
-    [timeSlots, viewInfo, currentView, locale]
+    [timeSlots, timeSlotStartById, viewInfo, currentView, locale, timeSlotConfig]
   );
 
   return {

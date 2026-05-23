@@ -46,7 +46,7 @@ export const tailwindTheme: Partial<Record<EyCalendarClassKey, string>> = {
   weekView: "",
   weekViewContainer: "",
   weekHeader: "border-b border-gray-200 dark:border-gray-700",
-  weekHeaderGrid: "me-[15px]",
+  weekHeaderGrid: "",
   weekHeaderDay:
     "gap-1.5 p-1.5 border-r border-gray-200 dark:border-gray-700 last:border-r-0 sm:gap-2 sm:p-2 capitalize",
   weekHeaderDayName: "text-xs",
@@ -104,7 +104,7 @@ export const tailwindTheme: Partial<Record<EyCalendarClassKey, string>> = {
   // MONTH VIEW
   // -------------------------------------------------------------------------
   monthView: "",
-  monthHeader: "border border-gray-200 dark:border-gray-700",
+  monthHeader: "border-l border-gray-200 dark:border-gray-700",
   monthHeaderGrid:
     "divide-gray-200 border-b border-gray-200 dark:divide-gray-700 dark:border-gray-700",
   monthHeaderDay: "p-2.5 border-r border-gray-200 dark:border-gray-700 last:border-r-0 sm:flex-row",
@@ -124,7 +124,7 @@ export const tailwindTheme: Partial<Record<EyCalendarClassKey, string>> = {
   monthEventItemTime: "text-gray-500 dark:text-gray-400",
   monthEventItemTitle: "text-gray-900 dark:text-gray-100",
   monthEventDot: "mt-0.5 h-2 w-2 rounded-full",
-  monthEventDotMobile: "",
+  monthEventDotMobile: "sm:hidden",
   monthEventContent: "",
   monthEventTime: "text-xs font-medium",
   monthEventTimeText: "text-gray-600 dark:text-gray-400",

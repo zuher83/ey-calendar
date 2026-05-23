@@ -87,7 +87,6 @@ export function useContainerHeight(
   useEffect(() => {
     // Reset height when transitioning from enabled to disabled
     if (prevEnabledRef.current && !enabled) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHeight(fallbackHeight);
     }
     prevEnabledRef.current = enabled;

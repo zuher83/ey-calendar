@@ -2,8 +2,7 @@
 // src/components/ey-calendar/components/CalendarToolbar.tsx
 
 import { useOptions } from "../context/OptionsContext";
-import { useEyCalendarView } from "../hooks";
-import { useEyCalendarClasses } from "../hooks/useEyCalendarClasses";
+import { useEyCalendarNavigation } from "../hooks/useEyCalendarView";
 import type { ViewMode } from "../types";
 import { DefaultButton } from "./defaults";
 
@@ -48,14 +47,10 @@ export function EyCalendarToolbar({
   showTitle = true,
 }: CalendarToolbarProps) {
   const { options } = useOptions();
-  const { currentView, navigation, actions, utils } = useEyCalendarView();
-
-  // Get class getter from context options
-  const getClass = useEyCalendarClasses({
-    theme: options.theme,
-    unstyled: options.unstyled,
-    classNames: options.classNames,
-  });
+  const { currentView, navigation, actions, utils } = useEyCalendarNavigation();
+  const showTodayAction = showTodayButton && options.showToday !== false;
+  const labels = options.labels;
+  const getClass = options.getClass;
 
   // Get custom Button component if provided
   const Button = options.components?.Button ?? DefaultButton;
@@ -63,11 +58,13 @@ export function EyCalendarToolbar({
   return (
     <div
       className={getClass("toolbar") + (className ? ` ${className}` : "")}
+      role="toolbar"
+      aria-label={labels.ariaCalendarToolbar}
       data-eycalendar-toolbar=""
     >
       {/* Left section: Navigation */}
       <div className={getClass("toolbarNavigation")} data-eycalendar-toolbar-navigation="">
-        {showTodayButton && (
+        {showTodayAction && (
           <Button
             variant="outline"
             size="sm"
@@ -88,9 +85,10 @@ export function EyCalendarToolbar({
               disabled={!navigation.canGoPrevious}
               className={getClass("buttonNav")}
               title={navigation.previousLabel}
+              aria-label={navigation.previousLabel}
               data-eycalendar-button-nav="prev"
             >
-              <ChevronLeftIcon className={getClass("iconChevron")} />
+              <ChevronLeftIcon className={getClass("iconChevron")} aria-hidden="true" />
             </Button>
             <Button
               variant="outline"
@@ -99,9 +97,10 @@ export function EyCalendarToolbar({
               disabled={!navigation.canGoNext}
               className={getClass("buttonNav")}
               title={navigation.nextLabel}
+              aria-label={navigation.nextLabel}
               data-eycalendar-button-nav="next"
             >
-              <ChevronRightIcon className={getClass("iconChevron")} />
+              <ChevronRightIcon className={getClass("iconChevron")} aria-hidden="true" />
             </Button>
           </>
         )}
@@ -119,6 +118,7 @@ export function EyCalendarToolbar({
         <ViewSelector
           currentView={currentView}
           onViewChange={actions.setView}
+          getViewLabel={utils.getViewLabel}
           getClass={getClass}
           Button={Button}
         />
@@ -133,13 +133,18 @@ export function EyCalendarToolbar({
 interface ViewSelectorProps {
   currentView: ViewMode;
   onViewChange: (view: ViewMode) => void;
+  getViewLabel: (view: ViewMode) => string;
   getClass: (key: import("../types").EyCalendarClassKey) => string;
   Button: React.ComponentType<import("../types").DefaultButtonProps>;
 }
 
-function ViewSelector({ currentView, onViewChange, getClass, Button }: ViewSelectorProps) {
-  const { utils } = useEyCalendarView();
-
+function ViewSelector({
+  currentView,
+  onViewChange,
+  getViewLabel,
+  getClass,
+  Button,
+}: ViewSelectorProps) {
   const views: ViewMode[] = ["month", "week", "day", "planning"];
 
   return (
@@ -151,10 +156,11 @@ function ViewSelector({ currentView, onViewChange, getClass, Button }: ViewSelec
           size="sm"
           onClick={() => onViewChange(view)}
           className={currentView === view ? getClass("buttonViewActive") : getClass("buttonView")}
+          aria-pressed={currentView === view}
           data-eycalendar-button-view={view}
           data-active={currentView === view ? "true" : undefined}
         >
-          {utils.getViewLabel(view)}
+          {getViewLabel(view)}
         </Button>
       ))}
     </div>

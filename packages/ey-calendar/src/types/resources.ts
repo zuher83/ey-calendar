@@ -15,7 +15,7 @@ export interface EyCalendarResource {
   department?: string;
   isAvailable?: boolean;
   workingHours?: WorkingHours;
-  custom?: Record<string, any>;
+  custom?: Record<string, unknown>;
 }
 
 /**
