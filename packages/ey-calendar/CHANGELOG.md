@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- [#3](https://github.com/zuher83/ey-calendar/pull/3) [`7f7be97`](https://github.com/zuher83/ey-calendar/commit/7f7be97374dc043fe03f5aad6eea893af98b8578) Thanks [@zuher83](https://github.com/zuher83)! - Add lightweight view hooks and safer calendar interactions
+
+  Expose narrower view hooks for navigation and visible event counts,
+  support optimistic revert handling for event updates, and improve
+  month, week, and planning behavior for keyboard, responsive, and
+  multi-instance usage.
+
 ## 0.1.1
 
 ### Patch Changes
