@@ -3,17 +3,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format, isToday } from "date-fns";
+import { useEvents } from "../../context/EventsContext";
 import { useOptions } from "../../context/OptionsContext";
 import { useViewActions, useViewCellHeight } from "../../context/ViewContext";
-import { useEvents } from "../../context/EventsContext";
 import { useTimeCalculations } from "../../hooks";
 import { cn } from "../../utils/cn";
+import { calculateEventSegments, getEventsForWeek, isMultiDayEvent } from "../../utils/eventUtils";
 import { moveFocusByOffset, moveFocusToBoundary } from "../../utils/focusNavigation";
-import {
-  calculateEventSegments,
-  getEventsForWeek,
-  isMultiDayEvent,
-} from "../../utils/eventUtils";
 import { WeekAllDayEventBar } from "./week/WeekAllDayEventBar";
 import { WeekDayColumn } from "./week/WeekDayColumn";
 
@@ -382,7 +378,6 @@ function WeekDayHeader({ day, locale, isHidden }: WeekDayHeaderProps) {
     </div>
   );
 }
-
 
 /**
  * Default export

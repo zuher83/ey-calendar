@@ -1,4 +1,5 @@
 // Tests for pure drag & drop utility functions
+import type { EyCalendarEvent } from "../../src/types";
 import {
   buildDropTarget,
   calculateTargetTime,
@@ -6,7 +7,6 @@ import {
   computeMonthDropTargetDate,
   computeWeekDayDrop,
 } from "../../src/utils/dragUtils";
-import type { EyCalendarEvent } from "../../src/types";
 
 // ---------------------------------------------------------------------------
 // Helpers

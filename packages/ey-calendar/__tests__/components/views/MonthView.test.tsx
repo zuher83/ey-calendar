@@ -2,8 +2,8 @@
 import React from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { EyCalendar } from "../../../src/components/EyCalendar";
-import { EyCalendarProvider } from "../../../src/context/CompositeEyCalendarContext";
 import { MonthView } from "../../../src/components/views/MonthView";
+import { EyCalendarProvider } from "../../../src/context/CompositeEyCalendarContext";
 import { createMockEvent, renderWithProvider } from "../../setup/testUtils";
 
 describe("MonthView", () => {
@@ -343,12 +343,20 @@ describe("MonthView", () => {
       render(
         <>
           <div data-eycalendar-root="">
-            <EyCalendarProvider initialEvents={[]} initialDate={new Date(2024, 0, 15)} initialView="month">
+            <EyCalendarProvider
+              initialEvents={[]}
+              initialDate={new Date(2024, 0, 15)}
+              initialView="month"
+            >
               <MonthView />
             </EyCalendarProvider>
           </div>
           <div data-eycalendar-root="">
-            <EyCalendarProvider initialEvents={[]} initialDate={new Date(2024, 1, 15)} initialView="month">
+            <EyCalendarProvider
+              initialEvents={[]}
+              initialDate={new Date(2024, 1, 15)}
+              initialView="month"
+            >
               <MonthView />
             </EyCalendarProvider>
           </div>

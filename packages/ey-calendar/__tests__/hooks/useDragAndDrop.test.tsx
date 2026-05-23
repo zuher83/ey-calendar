@@ -1,8 +1,8 @@
 import { act, renderHook } from "@testing-library/react";
-import { useEvents } from "../../src/context/EventsContext";
-import type { EyCalendarCallbacks } from "../../src/types";
 import { EyCalendarProvider } from "../../src/context/CompositeEyCalendarContext";
+import { useEvents } from "../../src/context/EventsContext";
 import { useDragAndDrop } from "../../src/hooks/useDragAndDrop";
+import type { EyCalendarCallbacks } from "../../src/types";
 import { createMockEvent } from "../setup/testUtils";
 
 const draggableMock = jest.fn();
@@ -156,9 +156,7 @@ describe("useDragAndDrop", () => {
       });
 
       const draggableConfig = draggableMock.mock.calls[0][0] as {
-        onDragStart: (args: {
-          location: { initial: { input: { clientY: number } } };
-        }) => void;
+        onDragStart: (args: { location: { initial: { input: { clientY: number } } } }) => void;
       };
       const dropTargetConfig = dropTargetForElementsMock.mock.calls[0][0] as {
         onDrop: (args: {
@@ -265,9 +263,7 @@ describe("useDragAndDrop", () => {
       });
 
       const draggableConfig = draggableMock.mock.calls[0][0] as {
-        onDragStart: (args: {
-          location: { initial: { input: { clientY: number } } };
-        }) => void;
+        onDragStart: (args: { location: { initial: { input: { clientY: number } } } }) => void;
       };
       const dropTargetConfig = dropTargetForElementsMock.mock.calls[0][0] as {
         onDrop: (args: {
@@ -405,9 +401,7 @@ describe("useDragAndDrop", () => {
       });
 
       const draggableConfig = draggableMock.mock.calls[0][0] as {
-        onDragStart: (args: {
-          location: { initial: { input: { clientY: number } } };
-        }) => void;
+        onDragStart: (args: { location: { initial: { input: { clientY: number } } } }) => void;
       };
       const dropTargetConfig = dropTargetForElementsMock.mock.calls[0][0] as {
         onDrop: (args: {

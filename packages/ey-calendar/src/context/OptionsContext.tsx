@@ -5,18 +5,15 @@ import React, { createContext, useContext, useMemo } from "react";
 import type { Locale } from "date-fns";
 import { DefaultBadge, DefaultButton } from "../components/defaults";
 import { DEFAULT_COMPONENTS } from "../constants/components";
-import {
-  useEyCalendarClasses,
-  type GetEyCalendarClass,
-} from "../hooks/useEyCalendarClasses";
+import { useEyCalendarClasses, type GetEyCalendarClass } from "../hooks/useEyCalendarClasses";
 import { useEyCalendarLabels } from "../hooks/useEyCalendarLabels";
 import type {
   EyCalendarClassNames,
   EyCalendarComponents,
   EyCalendarLabels,
   EyCalendarThemeClasses,
+  TimeSlotConfig,
 } from "../types";
-import type { TimeSlotConfig } from "../types";
 
 // ============================================================================
 // TYPES
@@ -43,8 +40,10 @@ export interface CalendarOptionsContextValue {
   showWeekNumbers?: boolean;
 }
 
-export interface ResolvedCalendarOptions
-  extends Omit<CalendarOptionsContextValue, "components" | "labels"> {
+export interface ResolvedCalendarOptions extends Omit<
+  CalendarOptionsContextValue,
+  "components" | "labels"
+> {
   components: Required<EyCalendarComponents>;
   labels: EyCalendarLabels;
   getClass: GetEyCalendarClass;

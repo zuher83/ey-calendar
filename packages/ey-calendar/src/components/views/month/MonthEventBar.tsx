@@ -5,11 +5,7 @@ import { format } from "date-fns";
 import { useCallbacks } from "../../../context/CallbacksContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
-import {
-  getEventColor,
-  getPastEventColors,
-  type EventSegment,
-} from "../../../utils/eventUtils";
+import { getEventColor, getPastEventColors, type EventSegment } from "../../../utils/eventUtils";
 
 export interface MonthEventBarProps {
   segment: EventSegment;

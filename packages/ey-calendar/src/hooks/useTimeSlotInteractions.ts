@@ -1,5 +1,5 @@
-import { addMinutes, format } from "date-fns";
 import type React from "react";
+import { addMinutes, format } from "date-fns";
 import { DEFAULT_TIME_SLOT_CONFIG } from "../constants";
 import { useCallbacks } from "../context/CallbacksContext";
 import { useEvents } from "../context/EventsContext";

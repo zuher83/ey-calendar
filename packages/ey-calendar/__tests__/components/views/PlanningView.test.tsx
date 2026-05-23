@@ -229,7 +229,7 @@ describe("PlanningView", () => {
       const todayHeader = document.querySelector('[data-today="true"]');
       expect(todayHeader).not.toBeInTheDocument();
 
-      const dateHeaderTitle = document.querySelector('[data-eycalendar-date-header] h3');
+      const dateHeaderTitle = document.querySelector("[data-eycalendar-date-header] h3");
       expect(dateHeaderTitle?.textContent).not.toContain("Today");
     });
   });

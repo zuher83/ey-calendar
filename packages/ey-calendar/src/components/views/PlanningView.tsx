@@ -8,6 +8,7 @@ import { useCallbacks } from "../../context/CallbacksContext";
 import { useEvents } from "../../context/EventsContext";
 import { useOptions } from "../../context/OptionsContext";
 import { useViewCurrentDate } from "../../context/ViewContext";
+import type { GetEyCalendarClass } from "../../hooks";
 import { useEventKeyboardInteractions } from "../../hooks/useEventKeyboardInteractions";
 import { useTimeCalculations } from "../../hooks/useTimeCalculations";
 import type {
@@ -16,7 +17,6 @@ import type {
   EyCalendarEvent,
   EyCalendarLabels,
 } from "../../types";
-import type { GetEyCalendarClass } from "../../hooks";
 import { cn } from "../../utils/cn";
 import { formatDuration, formatTime } from "../../utils/dateUtils";
 import { getEventsInDateRange, sortEventsByStartTime } from "../../utils/eventUtils";
@@ -254,7 +254,15 @@ interface EventCardProps {
   onEventClick?: (event: EyCalendarEvent, e: EyCalendarActivationEvent) => void;
 }
 
-function EventCard({ event, isPast, labels, Components, getClass, locale, onEventClick }: EventCardProps) {
+function EventCard({
+  event,
+  isPast,
+  labels,
+  Components,
+  getClass,
+  locale,
+  onEventClick,
+}: EventCardProps) {
   const startTime = formatTime(event.start, locale);
   const duration = formatDuration(event.start, event.end);
 

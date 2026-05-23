@@ -6,12 +6,9 @@ import { useCallbacks } from "../../../context/CallbacksContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
 import { useEventKeyboardInteractions } from "../../../hooks/useEventKeyboardInteractions";
-import type { EventSegment } from "../../../utils/eventUtils";
 import { cn } from "../../../utils/cn";
-import {
-  getEventColor,
-  getPastEventColors,
-} from "../../../utils/eventUtils";
+import type { EventSegment } from "../../../utils/eventUtils";
+import { getEventColor, getPastEventColors } from "../../../utils/eventUtils";
 
 export interface WeekAllDayEventBarProps {
   segment: EventSegment;
@@ -21,7 +18,12 @@ export interface WeekAllDayEventBarProps {
   totalCols: number;
 }
 
-export function WeekAllDayEventBar({ segment, locale, rowHeight, rowGap }: WeekAllDayEventBarProps) {
+export function WeekAllDayEventBar({
+  segment,
+  locale,
+  rowHeight,
+  rowGap,
+}: WeekAllDayEventBarProps) {
   const { callbacks } = useCallbacks();
   const { options } = useOptions();
   const { makeDraggable } = useDragAndDrop();

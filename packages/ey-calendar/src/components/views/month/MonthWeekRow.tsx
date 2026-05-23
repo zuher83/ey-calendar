@@ -1,10 +1,10 @@
 // A week row in the month view: day cells + spanning event bars
 
+import { getWeek, isSameDay, isSameMonth } from "date-fns";
 import { useOptions } from "../../../context/OptionsContext";
 import type { EyCalendarEvent } from "../../../types";
 import { cn } from "../../../utils/cn";
 import { calculateEventSegments, isMultiDayEvent } from "../../../utils/eventUtils";
-import { getWeek, isSameDay, isSameMonth } from "date-fns";
 import { MonthDayCell } from "./MonthDayCell";
 import { MonthEventBar } from "./MonthEventBar";
 
@@ -70,7 +70,11 @@ export function MonthWeekRow({
       }}
     >
       {showWeekNumbers && (
-        <div className={getClass("monthWeekNumberCell")} role="rowheader" data-eycalendar-week-number="">
+        <div
+          className={getClass("monthWeekNumberCell")}
+          role="rowheader"
+          data-eycalendar-week-number=""
+        >
           <span className={getClass("monthWeekNumber")}>{weekNumber}</span>
         </div>
       )}
@@ -109,7 +113,7 @@ export function MonthWeekRow({
         }}
         data-eycalendar-events-layer=""
       >
-        {segments.map((segment) => (
+        {segments.map((segment) =>
           (() => {
             const eventStartDay = new Date(
               segment.event.start.getFullYear(),
@@ -123,23 +127,21 @@ export function MonthWeekRow({
             );
             const segmentStartOffsetDays = Math.max(
               0,
-              Math.round(
-                (visibleSegmentStartDay.getTime() - eventStartDay.getTime()) / DAY_IN_MS
-              )
+              Math.round((visibleSegmentStartDay.getTime() - eventStartDay.getTime()) / DAY_IN_MS)
             );
 
             return (
-          <MonthEventBar
-            key={`${segment.event.id}-${segment.startCol}`}
-            segment={segment}
-            totalColumns={visibleDayCount}
-            segmentStartOffsetDays={segmentStartOffsetDays}
-            visibleSegmentStartDate={visibleSegmentStartDay}
-            locale={locale}
-          />
+              <MonthEventBar
+                key={`${segment.event.id}-${segment.startCol}`}
+                segment={segment}
+                totalColumns={visibleDayCount}
+                segmentStartOffsetDays={segmentStartOffsetDays}
+                visibleSegmentStartDate={visibleSegmentStartDay}
+                locale={locale}
+              />
             );
           })()
-        ))}
+        )}
       </div>
     </div>
   );

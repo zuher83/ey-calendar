@@ -2,8 +2,8 @@
 // Extracted from useDragAndDrop.ts to enable independent testing
 
 import { DEFAULT_TIME_SLOT_CONFIG } from "../constants";
-import type { DropTarget } from "../types/state";
 import type { EyCalendarEvent } from "../types/events";
+import type { DropTarget } from "../types/state";
 
 /**
  * Calculates the target time based on the Y position of the mouse.
@@ -125,11 +125,7 @@ export function computeWeekDayDrop(
 /**
  * Builds a DropTarget value suitable for the onEventDrop callback.
  */
-export function buildDropTarget(
-  start: Date,
-  end: Date,
-  resourceId?: string
-): DropTarget {
+export function buildDropTarget(start: Date, end: Date, resourceId?: string): DropTarget {
   return {
     id: `drop-${Date.now()}`,
     type: resourceId ? "resource" : "timeslot",

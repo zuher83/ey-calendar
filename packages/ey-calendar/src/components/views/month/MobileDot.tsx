@@ -1,7 +1,7 @@
 // Mobile event dot indicator for month view cells
 
-import type { EyCalendarEvent } from "../../../types";
 import { useOptions } from "../../../context/OptionsContext";
+import type { EyCalendarEvent } from "../../../types";
 import { cn } from "../../../utils/cn";
 import { getEventColor } from "../../../utils/eventUtils";
 
@@ -15,10 +15,7 @@ export function MobileDot({ dayEvents }: { dayEvents: EyCalendarEvent[] }) {
 
   return (
     <span
-      className={cn(
-        getClass("monthEventDot"),
-        getClass("monthEventDotMobile")
-      )}
+      className={cn(getClass("monthEventDot"), getClass("monthEventDotMobile"))}
       style={{ backgroundColor: getEventColor(dayEvents[0]) }}
     />
   );

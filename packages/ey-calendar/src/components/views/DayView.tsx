@@ -13,13 +13,13 @@ import { useEventKeyboardInteractions } from "../../hooks/useEventKeyboardIntera
 import { useTimeSlotInteractions } from "../../hooks/useTimeSlotInteractions";
 import type { EyCalendarEvent } from "../../types";
 import { cn } from "../../utils/cn";
-import { prepareIntradayEventLayouts } from "../../utils/intradayEventLayout";
 import {
   getEventColor,
   getEventsForDate,
   getPastEventColors,
   isMultiDayEvent,
 } from "../../utils/eventUtils";
+import { prepareIntradayEventLayouts } from "../../utils/intradayEventLayout";
 import {
   getEffectivePositionHeight,
   getSlotHeight,
@@ -158,7 +158,9 @@ export function DayView({ className = "" }: DayViewProps) {
 
   const { allDayOnlyEvents, timedEventLayouts } = useMemo(() => {
     const visibleEvents = getEventsForDate(events, currentDate);
-    const allDayOnlyEvents = visibleEvents.filter((event) => event.isAllDay || isMultiDayEvent(event));
+    const allDayOnlyEvents = visibleEvents.filter(
+      (event) => event.isAllDay || isMultiDayEvent(event)
+    );
     const timedEvents = visibleEvents.filter((event) => !event.isAllDay && !isMultiDayEvent(event));
 
     return {
@@ -207,9 +209,7 @@ export function DayView({ className = "" }: DayViewProps) {
                 />
               ))}
               {allDayOnlyEvents.length > 3 && (
-                <div className={getClass("dayAllDayMore")}>
-                  +{allDayOnlyEvents.length - 3} more
-                </div>
+                <div className={getClass("dayAllDayMore")}>+{allDayOnlyEvents.length - 3} more</div>
               )}
             </div>
           </div>
@@ -425,10 +425,7 @@ function DayAllDayEventBar({ event, locale, rowHeight, rowIndex, rowGap }: DayAl
   return (
     <div
       ref={eventRef}
-      className={cn(
-        getClass("dayAllDayEventBar"),
-        isPastEvent && getClass("eventPast")
-      )}
+      className={cn(getClass("dayAllDayEventBar"), isPastEvent && getClass("eventPast"))}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
       onContextMenu={handleContextMenu}

@@ -46,8 +46,12 @@ export function prepareIntradayEventLayouts({
 }: PrepareIntradayEventLayoutsOptions): PreparedIntradayEventLayout[] {
   const uniqueEvents = getUniqueEvents(events);
   const conflictGroups = detectConflictGroups(uniqueEvents);
-  const resolvedGroups = conflictGroups.map((group) => resolveConflictGroup(group, undefined, viewMode));
-  const conflictingEventIds = new Set(conflictGroups.flatMap((group) => group.events.map((event) => event.id)));
+  const resolvedGroups = conflictGroups.map((group) =>
+    resolveConflictGroup(group, undefined, viewMode)
+  );
+  const conflictingEventIds = new Set(
+    conflictGroups.flatMap((group) => group.events.map((event) => event.id))
+  );
   const eventColumnMap = new Map<string, EventColumnInfo>();
 
   resolvedGroups.forEach((group) => {

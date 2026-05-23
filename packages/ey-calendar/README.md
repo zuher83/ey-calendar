@@ -181,23 +181,22 @@ The package root intentionally exposes the stable consumer surface:
 
 ```tsx
 import {
+  cn,
+  deCalendar,
+  enCalendar,
   EyCalendar,
   EyCalendarToolbar,
-  enCalendar,
   frCalendar,
-  deCalendar,
   resolveTheme,
-  cn,
 } from "@emoory/ey-calendar";
-
 import type {
-  EyCalendarEvent,
-  EyCalendarOptions,
+  DropTarget,
   EyCalendarCallbacks,
   EyCalendarClassKey,
   EyCalendarClassNames,
+  EyCalendarEvent,
+  EyCalendarOptions,
   EyCalendarThemeClasses,
-  DropTarget,
   TimeSlot,
 } from "@emoory/ey-calendar";
 ```
@@ -279,11 +278,7 @@ interface EyCalendarProps {
   onTimeSlotClick?: (date: Date, e: React.MouseEvent, resourceId?: string) => void;
   onTimeSlotDoubleClick?: (date: Date, e: React.MouseEvent, resourceId?: string) => void;
   onEventCreate?: (timeSlot: TimeSlot, resourceId?: string) => EyCalendarEvent | void;
-  onEventUpdate?: (
-    eventId: string,
-    updates: Partial<EyCalendarEvent>,
-    revert: () => void
-  ) => void;
+  onEventUpdate?: (eventId: string, updates: Partial<EyCalendarEvent>, revert: () => void) => void;
   onEventDelete?: (eventId: string) => void;
   onViewChange?: (view: ViewMode, date: Date) => void;
   onDateChange?: (date: Date) => void;

@@ -98,12 +98,8 @@ export function MonthView({ className = "" }: MonthViewProps) {
     });
 
     visibleEvents.forEach((event) => {
-      const overlapStart = new Date(
-        Math.max(getLocalDayKey(event.start), visibleStart.getTime())
-      );
-      const overlapEnd = new Date(
-        Math.min(getLocalDayKey(event.end), getLocalDayKey(visibleEnd))
-      );
+      const overlapStart = new Date(Math.max(getLocalDayKey(event.start), visibleStart.getTime()));
+      const overlapEnd = new Date(Math.min(getLocalDayKey(event.end), getLocalDayKey(visibleEnd)));
 
       let currentDay = overlapStart;
       while (currentDay.getTime() <= overlapEnd.getTime()) {
@@ -113,7 +109,9 @@ export function MonthView({ className = "" }: MonthViewProps) {
     });
 
     dayEventsIndex.forEach((dayEvents) => {
-      dayEvents.sort((leftEvent, rightEvent) => leftEvent.start.getTime() - rightEvent.start.getTime());
+      dayEvents.sort(
+        (leftEvent, rightEvent) => leftEvent.start.getTime() - rightEvent.start.getTime()
+      );
     });
 
     const indexedWeeks: MonthWeekData[] = [];

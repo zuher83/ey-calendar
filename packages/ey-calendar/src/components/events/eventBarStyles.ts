@@ -28,7 +28,12 @@ export function computeResizePreviewPosition(
   cellHeight: number,
   granularity: GridGranularity = DEFAULT_TIME_SLOT_CONFIG.granularity
 ): EventPosition | undefined {
-  if (!resizePreview.isResizing || !resizePreview.startTime || !resizePreview.endTime || !position) {
+  if (
+    !resizePreview.isResizing ||
+    !resizePreview.startTime ||
+    !resizePreview.endTime ||
+    !position
+  ) {
     return position;
   }
 
@@ -57,9 +62,7 @@ export function computeResizePreviewPosition(
     const slotHeight = effectiveCellHeight / slotsPerHour;
     newTop = (startHour * slotsPerHour + startMinutes / 15) * slotHeight;
     newHeight =
-      (endHour * slotsPerHour +
-        endMinutes / 15 -
-        (startHour * slotsPerHour + startMinutes / 15)) *
+      (endHour * slotsPerHour + endMinutes / 15 - (startHour * slotsPerHour + startMinutes / 15)) *
       slotHeight;
   }
 
@@ -126,12 +129,11 @@ export function computeEventStyles(
     baseStyles.borderStyle = "solid";
 
     const optimalColor = getOptimalTextColor(effectiveColor);
-    baseStyles.color =
-      isPastEvent
-        ? optimalColor === "#000000"
-          ? "rgb(80, 80, 80)"
-          : "rgb(240, 240, 240)"
-        : optimalColor;
+    baseStyles.color = isPastEvent
+      ? optimalColor === "#000000"
+        ? "rgb(80, 80, 80)"
+        : "rgb(240, 240, 240)"
+      : optimalColor;
   }
 
   const finalZIndex = isHovered ? chronologicalZIndex + 20 : chronologicalZIndex;

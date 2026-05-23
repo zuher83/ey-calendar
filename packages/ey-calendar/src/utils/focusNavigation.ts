@@ -37,9 +37,7 @@ export function moveFocusToBoundary(
   }
 
   const target =
-    boundary === "start"
-      ? focusableElements[0]
-      : focusableElements[focusableElements.length - 1];
+    boundary === "start" ? focusableElements[0] : focusableElements[focusableElements.length - 1];
 
   target?.focus();
 }

@@ -10,9 +10,9 @@ import {
   isSameDay,
   isSameMonth,
   isSameWeek,
-  type Locale,
   startOfMonth,
   startOfWeek,
+  type Locale,
 } from "date-fns";
 import { useEvents } from "../context/EventsContext";
 import { useOptions } from "../context/OptionsContext";
@@ -181,8 +181,16 @@ function useCalendarViewState(): CalendarViewState {
 }
 
 function useCalendarViewNavigation(state: CalendarViewState): CalendarViewNavigationResult {
-  const { currentView, currentDate, events, labels, locale, visibleRange, setViewMode, setCurrentDate } =
-    state;
+  const {
+    currentView,
+    currentDate,
+    events,
+    labels,
+    locale,
+    visibleRange,
+    setViewMode,
+    setCurrentDate,
+  } = state;
 
   const navigation = useMemo((): NavigationInfo => {
     const canGoNext = true;
@@ -349,7 +357,15 @@ function useCalendarViewNavigation(state: CalendarViewState): CalendarViewNaviga
         return labelsMap[view] || view;
       },
     }),
-    [currentDate, currentView, events, labels, navigation.currentLabel, visibleRange.end, visibleRange.start]
+    [
+      currentDate,
+      currentView,
+      events,
+      labels,
+      navigation.currentLabel,
+      visibleRange.end,
+      visibleRange.start,
+    ]
   );
 
   return {

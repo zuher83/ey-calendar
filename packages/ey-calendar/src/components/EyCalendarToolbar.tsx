@@ -138,7 +138,13 @@ interface ViewSelectorProps {
   Button: React.ComponentType<import("../types").DefaultButtonProps>;
 }
 
-function ViewSelector({ currentView, onViewChange, getViewLabel, getClass, Button }: ViewSelectorProps) {
+function ViewSelector({
+  currentView,
+  onViewChange,
+  getViewLabel,
+  getClass,
+  Button,
+}: ViewSelectorProps) {
   const views: ViewMode[] = ["month", "week", "day", "planning"];
 
   return (

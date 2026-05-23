@@ -1,8 +1,8 @@
 // Tests for WeekView component
 import React from "react";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { EyCalendarProvider } from "../../../src/context/CompositeEyCalendarContext";
 import { WeekView } from "../../../src/components/views/WeekView";
+import { EyCalendarProvider } from "../../../src/context/CompositeEyCalendarContext";
 import { createMockEvent, renderWithProvider } from "../../setup/testUtils";
 
 describe("WeekView", () => {
@@ -62,8 +62,12 @@ describe("WeekView", () => {
       try {
         renderWithProvider(<WeekView />, { initialView: "week" });
 
-        const weekView = document.querySelector("[data-eycalendar-week-view]") as HTMLDivElement | null;
-        const weekGrid = document.querySelector("[data-eycalendar-week-grid]") as HTMLDivElement | null;
+        const weekView = document.querySelector(
+          "[data-eycalendar-week-view]"
+        ) as HTMLDivElement | null;
+        const weekGrid = document.querySelector(
+          "[data-eycalendar-week-grid]"
+        ) as HTMLDivElement | null;
 
         expect(weekView).not.toBeNull();
         expect(weekGrid).not.toBeNull();
@@ -338,12 +342,20 @@ describe("WeekView", () => {
       render(
         <>
           <div data-eycalendar-root="">
-            <EyCalendarProvider initialEvents={[]} initialDate={new Date(2024, 0, 15)} initialView="week">
+            <EyCalendarProvider
+              initialEvents={[]}
+              initialDate={new Date(2024, 0, 15)}
+              initialView="week"
+            >
               <WeekView />
             </EyCalendarProvider>
           </div>
           <div data-eycalendar-root="">
-            <EyCalendarProvider initialEvents={[]} initialDate={new Date(2024, 0, 22)} initialView="week">
+            <EyCalendarProvider
+              initialEvents={[]}
+              initialDate={new Date(2024, 0, 22)}
+              initialView="week"
+            >
               <WeekView />
             </EyCalendarProvider>
           </div>

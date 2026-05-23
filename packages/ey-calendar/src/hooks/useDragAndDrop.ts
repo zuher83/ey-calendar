@@ -12,8 +12,8 @@ import { useDragDrop } from "../context/DragDropContext";
 import { useEvents } from "../context/EventsContext";
 import { useOptions } from "../context/OptionsContext";
 import { useViewCellHeight } from "../context/ViewContext";
-import type { DragMovePayload, DropPayload } from "../types/dnd";
 import type { EventPosition, EyCalendarEvent } from "../types";
+import type { DragMovePayload, DropPayload } from "../types/dnd";
 import {
   buildDropTarget,
   calculateTargetTime,
@@ -380,16 +380,11 @@ export function useDragAndDrop() {
         },
         onDrag: ({ location }) => {
           const dragData = sharedSessionRef.current;
-          if (
-            !dragData.originalStart ||
-            !dragData.originalEnd ||
-            !location.current.input.clientY
-          ) {
+          if (!dragData.originalStart || !dragData.originalEnd || !location.current.input.clientY) {
             return;
           }
 
-          const container =
-            element.closest('[data-drop-target="true"]') || element.parentElement;
+          const container = element.closest('[data-drop-target="true"]') || element.parentElement;
           if (!container) return;
 
           const containerRect = container.getBoundingClientRect();
@@ -423,16 +418,11 @@ export function useDragAndDrop() {
         },
         onDrop: ({ location }) => {
           const dragData = sharedSessionRef.current;
-          if (
-            !dragData.originalStart ||
-            !dragData.originalEnd ||
-            !location.current.input.clientY
-          ) {
+          if (!dragData.originalStart || !dragData.originalEnd || !location.current.input.clientY) {
             return;
           }
 
-          const container =
-            element.closest('[data-drop-target="true"]') || element.parentElement;
+          const container = element.closest('[data-drop-target="true"]') || element.parentElement;
           if (!container) return;
 
           const containerRect = container.getBoundingClientRect();
