@@ -1,5 +1,5 @@
+import type { JSX, ReactNode } from "react";
 import type { Metadata } from "next";
-import type { ReactNode, JSX } from "react";
 import "@emoory/ey-calendar/styles/structure.css";
 import "./calendar-theme.css";
 
