@@ -19,7 +19,11 @@ import type {
 } from "../../types";
 import { cn } from "../../utils/cn";
 import { formatDuration, formatTime } from "../../utils/dateUtils";
-import { getEventsInDateRange, sortEventsByStartTime } from "../../utils/eventUtils";
+import {
+  getEventsInDateRange,
+  shouldShowEventTime,
+  sortEventsByStartTime,
+} from "../../utils/eventUtils";
 
 /**
  * Interface for PlanningView props
@@ -215,6 +219,7 @@ export function PlanningView({ className = "" }: PlanningViewProps) {
                       Components={Components}
                       getClass={getClass}
                       locale={locale}
+                      showEventTime={options.showEventTime}
                       onEventClick={callbacks?.onEventClick}
                     />
                   ))
@@ -251,6 +256,7 @@ interface EventCardProps {
   Components: Required<EyCalendarComponents>;
   getClass: GetEyCalendarClass;
   locale?: Locale;
+  showEventTime?: boolean;
   onEventClick?: (event: EyCalendarEvent, e: EyCalendarActivationEvent) => void;
 }
 
@@ -261,8 +267,10 @@ function EventCard({
   Components,
   getClass,
   locale,
+  showEventTime,
   onEventClick,
 }: EventCardProps) {
+  const timeVisible = shouldShowEventTime(event, showEventTime);
   const startTime = formatTime(event.start, locale);
   const duration = formatDuration(event.start, event.end);
 
@@ -293,7 +301,7 @@ function EventCard({
       onKeyDown={handleKeyDown}
       role="article"
       tabIndex={0}
-      aria-label={`${labels.ariaEvent(event.title)}, ${formatTime(event.start, locale)} - ${formatTime(event.end, locale)}${event.isAllDay ? `, ${labels.allDay}` : ""}${isPast ? `, ${labels.past}` : ""}`}
+      aria-label={`${labels.ariaEvent(event.title)}${timeVisible ? `, ${formatTime(event.start, locale)} - ${formatTime(event.end, locale)}` : ""}${event.isAllDay ? `, ${labels.allDay}` : ""}${isPast ? `, ${labels.past}` : ""}`}
       data-eycalendar-event-card=""
       data-event-id={event.id}
       data-past={isPast ? "true" : undefined}
@@ -302,18 +310,22 @@ function EventCard({
       <div className={getClass("eventCardHeader")}>
         {/* Time, duration and title on same line */}
         <div className={getClass("eventCardContent")}>
-          <div className={getClass("eventCardTime")}>
-            <span
-              className={isPast ? getClass("eventCardTimePast") : getClass("eventCardTimeText")}
-            >
-              {startTime}
-            </span>
-            <span
-              className={isPast ? getClass("eventCardDurationPast") : getClass("eventCardDuration")}
-            >
-              <Components.SeparatorIcon /> {duration}
-            </span>
-          </div>
+          {timeVisible && (
+            <div className={getClass("eventCardTime")}>
+              <span
+                className={isPast ? getClass("eventCardTimePast") : getClass("eventCardTimeText")}
+              >
+                {startTime}
+              </span>
+              <span
+                className={
+                  isPast ? getClass("eventCardDurationPast") : getClass("eventCardDuration")
+                }
+              >
+                <Components.SeparatorIcon /> {duration}
+              </span>
+            </div>
+          )}
 
           {/* Event title */}
           <h4 className={isPast ? getClass("eventCardTitlePast") : getClass("eventCardTitle")}>

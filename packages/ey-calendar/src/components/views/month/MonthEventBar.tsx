@@ -5,7 +5,12 @@ import { format } from "date-fns";
 import { useCallbacks } from "../../../context/CallbacksContext";
 import { useOptions } from "../../../context/OptionsContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
-import { getEventColor, getPastEventColors, type EventSegment } from "../../../utils/eventUtils";
+import {
+  getEventColor,
+  getPastEventColors,
+  shouldShowEventTime,
+  type EventSegment,
+} from "../../../utils/eventUtils";
 
 export interface MonthEventBarProps {
   segment: EventSegment;
@@ -31,6 +36,10 @@ export function MonthEventBar({
   const getClass = options.getClass;
 
   const isPastEvent = event.end < new Date();
+  const timeVisible = shouldShowEventTime(event, options.showEventTime);
+  // The tooltip must follow the same rule as the visible label: it is plain text,
+  // so a consumer cannot hide an unwanted hour there with CSS.
+  const tooltipDateFormat = timeVisible ? "PP HH:mm" : "PP";
 
   useEffect(() => {
     const element = eventRef.current;
@@ -99,9 +108,9 @@ export function MonthEventBar({
           borderStyle: "solid",
         }),
       }}
-      title={`${event.title}\n${format(new Date(event.start), "PP HH:mm", { locale })} - ${format(new Date(event.end), "PP HH:mm", { locale })}\n${event.description || ""}`}
+      title={`${event.title}\n${format(new Date(event.start), tooltipDateFormat, { locale })} - ${format(new Date(event.end), tooltipDateFormat, { locale })}\n${event.description || ""}`}
     >
-      {isStart && (
+      {isStart && timeVisible && (
         <span className={getClass("monthEventBarTime")}>
           {format(new Date(event.start), "HH:mm", { locale })}
         </span>

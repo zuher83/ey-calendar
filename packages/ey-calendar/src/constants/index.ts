@@ -46,6 +46,7 @@ export const DEFAULT_OPTIONS: EyCalendarOptions = {
   highlightToday: true,
   showWeekNumbers: false,
   showToolbar: true,
+  showEventTime: true,
 
   // Layout
   width: "100%",

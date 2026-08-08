@@ -7,7 +7,7 @@ import { useOptions } from "../../../context/OptionsContext";
 import { useDragAndDrop } from "../../../hooks/useDragAndDrop";
 import { useEventKeyboardInteractions } from "../../../hooks/useEventKeyboardInteractions";
 import type { EyCalendarEvent } from "../../../types";
-import { getEventColor } from "../../../utils/eventUtils";
+import { getEventColor, shouldShowEventTime } from "../../../utils/eventUtils";
 
 export interface MonthEventItemProps {
   event: EyCalendarEvent;
@@ -86,9 +86,11 @@ export function MonthEventItem({ event, locale, topOffset, height }: MonthEventI
         }}
         data-eycalendar-event-dot=""
       />
-      <span className={getClass("monthEventItemTime")}>
-        {format(new Date(event.start), "HH:mm", { locale })}
-      </span>
+      {shouldShowEventTime(event, options.showEventTime) && (
+        <span className={getClass("monthEventItemTime")}>
+          {format(new Date(event.start), "HH:mm", { locale })}
+        </span>
+      )}
       <span className={getClass("monthEventItemTitle")}>{event.title}</span>
     </div>
   );
