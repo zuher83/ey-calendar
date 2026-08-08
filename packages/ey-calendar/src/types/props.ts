@@ -29,6 +29,19 @@ export interface EyCalendarOptions {
   showWeekNumbers?: boolean;
   showToolbar?: boolean;
 
+  /**
+   * Display the start time alongside event titles.
+   *
+   * Set to `false` when the underlying data is timestamped but the hour carries
+   * no meaning for the user (for example a record created at 10:38 that belongs
+   * to a day, not to a time).
+   *
+   * All-day events never display a time, whatever this option is set to.
+   *
+   * @default true
+   */
+  showEventTime?: boolean;
+
   // Layout
   /**
    * Calendar width (default: 100%)

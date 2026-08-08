@@ -5,7 +5,7 @@ import { useOptions } from "../../context/OptionsContext";
 import type { EventPosition, EyCalendarEvent } from "../../types";
 import { cn } from "../../utils/cn";
 import { formatDuration, formatTime } from "../../utils/dateUtils";
-import { getEventDisplayTitle } from "../../utils/eventUtils";
+import { getEventDisplayTitle, shouldShowEventTime } from "../../utils/eventUtils";
 import type { ResizePreviewState } from "./eventBarStyles";
 
 export interface EventBarContentProps {
@@ -31,7 +31,9 @@ export function EventBarContent({
   const title = getEventDisplayTitle(event, displayStyle === "compact" ? 15 : 40);
 
   const isSmallEvent = position && position.height < 50;
+  const timeVisible = shouldShowEventTime(event, options.showEventTime);
   const showTimePrefix =
+    timeVisible &&
     (viewMode === "week" || viewMode === "day") &&
     (displayStyle === "compact" || displayStyle === "minimal" || isSmallEvent);
   const timePrefix = showTimePrefix ? formatTime(event.start, locale) : "";
@@ -68,7 +70,7 @@ export function EventBarContent({
             </h3>
           </div>
 
-          {!isSmallEvent && (
+          {!isSmallEvent && timeVisible && (
             <div className={getClass("eventTime")}>
               {resizePreview.isResizing && resizePreview.startTime && resizePreview.endTime ? (
                 <>

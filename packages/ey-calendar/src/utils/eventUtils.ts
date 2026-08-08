@@ -118,6 +118,21 @@ export function getEventDisplayTitle(event: EyCalendarEvent, maxLength: number =
 }
 
 /**
+ * Tells whether the start time of an event should be displayed.
+ *
+ * Two independent reasons hide it:
+ * - the `showEventTime` option is explicitly disabled, for data whose hour
+ *   carries no meaning;
+ * - the event is all-day, which has no meaningful time to begin with.
+ *
+ * Every place that renders a time — including tooltips and accessible labels —
+ * must go through this helper, so that all of them stay consistent.
+ */
+export function shouldShowEventTime(event: EyCalendarEvent, showEventTime?: boolean): boolean {
+  return showEventTime !== false && !event.isAllDay;
+}
+
+/**
  * Gets event color or default color
  */
 export function getEventColor(event: EyCalendarEvent): string {

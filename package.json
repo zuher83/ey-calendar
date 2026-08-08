@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm build && pnpm test",
     "validate:publication": "pnpm --filter @emoory/ey-calendar validate:package && pnpm validate:consumers",
     "validate:consumers": "pnpm --filter @emoory/example-vite-react build && pnpm --filter @emoory/example-nextjs-app build",
     "test": "turbo run test",

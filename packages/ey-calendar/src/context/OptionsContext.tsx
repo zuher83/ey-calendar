@@ -38,6 +38,8 @@ export interface CalendarOptionsContextValue {
   autoHeight?: boolean;
   detectedHeight?: number;
   showWeekNumbers?: boolean;
+  showEventTime?: boolean;
+  maxEventsPerSlot?: number;
 }
 
 export interface ResolvedCalendarOptions extends Omit<
@@ -108,6 +110,8 @@ export function OptionsProvider({ children, options = {} }: OptionsProviderProps
         autoHeight: options.autoHeight ?? false,
         detectedHeight: options.detectedHeight,
         showWeekNumbers: options.showWeekNumbers ?? false,
+        showEventTime: options.showEventTime ?? true,
+        maxEventsPerSlot: options.maxEventsPerSlot,
       },
     }),
     [
@@ -130,6 +134,8 @@ export function OptionsProvider({ children, options = {} }: OptionsProviderProps
       options.autoHeight,
       options.detectedHeight,
       options.showWeekNumbers,
+      options.showEventTime,
+      options.maxEventsPerSlot,
     ]
   );
 

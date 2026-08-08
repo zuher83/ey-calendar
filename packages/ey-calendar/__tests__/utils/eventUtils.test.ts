@@ -8,6 +8,7 @@ import {
   getEventsInDateRange,
   getOverlappingEvents,
   groupOverlappingEvents,
+  shouldShowEventTime,
   sortEventsByStartTime,
 } from "../../src/utils/eventUtils";
 
@@ -283,6 +284,31 @@ describe("eventUtils", () => {
       const result = getEventDisplayTitle(event);
 
       expect(result.length).toBeLessThanOrEqual(33);
+    });
+  });
+
+  describe("shouldShowEventTime", () => {
+    const timedEvent = createEvent("1", new Date(2024, 0, 1, 10, 38), new Date(2024, 0, 1, 11, 0));
+    const allDayEvent: EyCalendarEvent = { ...timedEvent, isAllDay: true };
+
+    it("shows the time of a timed event by default", () => {
+      expect(shouldShowEventTime(timedEvent, undefined)).toBe(true);
+    });
+
+    it("shows the time when the option is explicitly enabled", () => {
+      expect(shouldShowEventTime(timedEvent, true)).toBe(true);
+    });
+
+    it("hides the time when the option is disabled", () => {
+      expect(shouldShowEventTime(timedEvent, false)).toBe(false);
+    });
+
+    it("never shows a time for an all-day event, even by default", () => {
+      expect(shouldShowEventTime(allDayEvent, undefined)).toBe(false);
+    });
+
+    it("never shows a time for an all-day event, even when the option is enabled", () => {
+      expect(shouldShowEventTime(allDayEvent, true)).toBe(false);
     });
   });
 });

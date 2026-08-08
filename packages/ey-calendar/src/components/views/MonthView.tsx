@@ -148,10 +148,17 @@ export function MonthView({ className = "" }: MonthViewProps) {
     enabled: true,
     fallbackHeight: 600,
   });
-  const maxEventRows = useMemo(
-    () => calculateMaxEventRows(monthGridHeight, numberOfWeeks),
-    [monthGridHeight, numberOfWeeks]
-  );
+  // How many events a day cell may show. The available height gives a first
+  // budget; `maxEventsPerSlot` caps it further when the consumer wants an
+  // explicit per-cell limit (Odoo's `event_limit`). Capping here, at the single
+  // source, keeps the rendered events and the "+N more" count in agreement —
+  // MonthWeekRow recomputes the overflow from this very number.
+  const maxEventRows = useMemo(() => {
+    const rowsThatFit = calculateMaxEventRows(monthGridHeight, numberOfWeeks);
+    const cap = options.maxEventsPerSlot;
+
+    return cap === undefined ? rowsThatFit : Math.max(0, Math.min(rowsThatFit, cap));
+  }, [monthGridHeight, numberOfWeeks, options.maxEventsPerSlot]);
 
   // Generate weekday headers starting from Monday (weekStartsOn: 1)
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1, locale });
