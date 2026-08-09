@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- [#6](https://github.com/zuher83/ey-calendar/pull/6) [`b7df45b`](https://github.com/zuher83/ey-calendar/commit/b7df45b063333cf0000d341e1f3d4ce0cb4ea74b) Thanks [@zuher83](https://github.com/zuher83)! - Honor `maxEventsPerSlot`, and stop displaying a time for events that have none
+
+  `maxEventsPerSlot` was declared as a public option, with a default value, but was
+  read by no component: how many events a month cell displayed only ever derived
+  from the available height. It now caps that budget, and the events it hides fall
+  into the existing "+N more" overflow.
+
+  Events no longer display a time when that time carries no meaning:
+  - all-day events no longer print `00:00`. `isAllDay` used to route events between
+    the all-day band and the grid without ever affecting their label;
+  - the new `showEventTime` option hides the time of timestamped events whose hour
+    is not meaningful to the user (`showEventTime: false`).
+
+  Both rules also apply to the month tooltip and to accessible labels, which a
+  consumer could not reach with CSS.
+
+  The unused `ViewConfig` and `EyCalendarState` types are removed. Neither was
+  exported, so the public type surface is unchanged.
+
 ## 0.2.0
 
 ### Minor Changes
