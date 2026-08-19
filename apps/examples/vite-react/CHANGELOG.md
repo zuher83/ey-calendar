@@ -1,5 +1,12 @@
 # @emoory/example-vite-react
 
+## 0.0.4
+
+### Patch Changes
+
+- Updated dependencies [[`38e4c0a`](https://github.com/zuher83/ey-calendar/commit/38e4c0a6cfb4a7e735a380a6fc1b68ba7a3c16c5)]:
+  - @emoory/ey-calendar@0.4.0
+
 ## 0.0.3
 
 ### Patch Changes
