@@ -47,5 +47,8 @@ Thumbs.db
 .github/*-instructions.md
 .github/skills
 .github/instructions
+
+# Local AI configuration (not shared)
+CLAUDE.md
 .claude/*
 .local/
