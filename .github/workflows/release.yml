@@ -7,6 +7,11 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+# changesets/action commits and pushes without skipping git hooks:
+# keep husky out of this job so its hooks cannot fail the release.
+env:
+  HUSKY: 0
+
 jobs:
   release:
     name: Release

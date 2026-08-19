@@ -29,6 +29,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "ci:publish": "changeset publish",
+    "prepare": "husky",
     "release": "turbo run build --filter=@emoory/ey-calendar && changeset publish"
   },
   "devDependencies": {
@@ -42,6 +43,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.6.0",
+    "husky": "^9.1.7",
     "prettier": "^3.8.3",
     "turbo": "^2.9.14",
     "typescript": "^6.0.3"
