@@ -8,7 +8,7 @@ import { createMockEvent } from "../setup/testUtils";
 const draggableMock = jest.fn();
 const dropTargetForElementsMock = jest.fn();
 
-jest.mock("@atlaskit/pragmatic-drag-and-drop/element/adapter", () => ({
+jest.mock("@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter", () => ({
   draggable: (config: unknown) => draggableMock(config),
   dropTargetForElements: (config: unknown) => dropTargetForElementsMock(config),
 }));

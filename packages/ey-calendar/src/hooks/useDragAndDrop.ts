@@ -6,7 +6,7 @@ import { useCallback, useState } from "react";
 import {
   draggable,
   dropTargetForElements,
-} from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+} from "@atlaskit/pragmatic-drag-and-drop/adapter/element-adapter";
 import { useCallbacks } from "../context/CallbacksContext";
 import { useDragDrop } from "../context/DragDropContext";
 import { useEvents } from "../context/EventsContext";
